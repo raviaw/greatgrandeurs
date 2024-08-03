@@ -6,32 +6,32 @@
 //
 package com.raviaw.greatgrandeurs
 
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ShareCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
+import com.raviaw.greatgrandeurs.compose.BluetoothScreen
 import com.raviaw.greatgrandeurs.compose.HomeScreen
 import com.raviaw.greatgrandeurs.compose.MoveScreen
 
 @Composable
-fun GreatGrandeursApp() {
+fun GreatGrandeursApp(bluetoothCommunication: BluetoothCommunication) {
   val navController = rememberNavController()
   GreatGrandeursNavHost(
-    navController = navController
+    navController = navController,
+    bluetoothCommunication = bluetoothCommunication
   )
 }
 
 @Composable
 fun GreatGrandeursNavHost(
-  navController: NavHostController
+  navController: NavHostController,
+  bluetoothCommunication: BluetoothCommunication
 ) {
-  val activity = (LocalContext.current as Activity)
+  Log.d(TAG, "Initializing app")
   NavHost(navController = navController, startDestination = Screen.Home.route) {
     composable(route = Screen.Home.route) {
       HomeScreen(
@@ -54,6 +54,16 @@ fun GreatGrandeursNavHost(
           navController.navigate(
             Screen.Report.createRoute()
           )
+        },
+        onBluetooth = {
+          navController.navigate(
+            Screen.Bluetooth.createRoute()
+          )
+        },
+        onSettings = {
+          navController.navigate(
+            Screen.Settings.createRoute()
+          )
         }
       )
     }
@@ -62,6 +72,15 @@ fun GreatGrandeursNavHost(
       arguments = Screen.Move.navArguments
     ) {
       MoveScreen(
+        onBackClick = { navController.navigateUp() }
+      )
+    }
+    composable(
+      route = Screen.Bluetooth.route,
+      arguments = Screen.Bluetooth.navArguments
+    ) {
+      BluetoothScreen(
+        bluetoothCommunication = bluetoothCommunication,
         onBackClick = { navController.navigateUp() }
       )
     }

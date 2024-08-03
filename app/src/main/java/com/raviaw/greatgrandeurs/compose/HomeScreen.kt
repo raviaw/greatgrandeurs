@@ -34,7 +34,15 @@ import com.raviaw.greatgrandeurs.formatCoordinate
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, onCalibrate: () -> Unit, onMove: () -> Unit, onFind: () -> Unit, onReport: () -> Unit) {
+fun HomeScreen(
+  modifier: Modifier = Modifier,
+  onCalibrate: () -> Unit,
+  onMove: () -> Unit,
+  onFind: () -> Unit,
+  onReport: () -> Unit,
+  onBluetooth: () -> Unit,
+  onSettings: () -> Unit,
+) {
   val azimuth by remember { mutableDoubleStateOf(0.0) }
   val altitude by remember { mutableDoubleStateOf(0.0) }
   val rightAscension by remember { mutableDoubleStateOf(0.0) }
@@ -98,6 +106,7 @@ fun HomeScreen(modifier: Modifier = Modifier, onCalibrate: () -> Unit, onMove: (
         onClick = { onMove() }
       )
     }
+    Spacer(modifier = Modifier.height(6.dp))
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
         content = { Text("Find") },
@@ -111,6 +120,20 @@ fun HomeScreen(modifier: Modifier = Modifier, onCalibrate: () -> Unit, onMove: (
         onClick = { onReport() }
       )
     }
+    Spacer(modifier = Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      Button(
+        content = { Text("Bluetooth") },
+        modifier = textModifier.weight(1.0f),
+        onClick = { onBluetooth() }
+      )
+      Spacer(modifier = Modifier.width(6.dp))
+      Button(
+        content = { Text("Settings") },
+        modifier = textModifier.weight(1.0f),
+        onClick = { onSettings() }
+      )
+    }
   }
 }
 
@@ -118,6 +141,6 @@ fun HomeScreen(modifier: Modifier = Modifier, onCalibrate: () -> Unit, onMove: (
 @Composable
 fun HomeScreenPreview() {
   GreatGrandeursTheme {
-    HomeScreen(modifier = Modifier, onCalibrate = {}, onMove = {}, onFind = {}, onReport = {})
+    HomeScreen(modifier = Modifier, onCalibrate = {}, onMove = {}, onFind = {}, onReport = {}, onBluetooth = {}, onSettings = {})
   }
 }

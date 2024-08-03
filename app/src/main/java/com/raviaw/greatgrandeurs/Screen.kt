@@ -40,6 +40,14 @@ sealed class Screen(
     fun createRoute() = "report"
   }
 
+  data object Bluetooth : Screen(route = "bluetooth") {
+    fun createRoute() = "bluetooth"
+  }
+
+  data object Settings : Screen(route = "settings") {
+    fun createRoute() = "settings"
+  }
+
 //    data object Gallery : Screen(
 //        route = "gallery/{plantName}",
 //        navArguments = listOf(navArgument("plantName") {
