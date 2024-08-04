@@ -6,6 +6,7 @@
 //
 package com.raviaw.greatgrandeurs.compose
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
 
+@SuppressLint("MissingPermission")
 @Composable
 fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: BluetoothCommunication, onBackClick: () -> Unit) {
   val textColumnModifier = Modifier.fillMaxWidth()
@@ -44,6 +46,10 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: Bluet
       Card() {
         Text(text = "Make sure the bluetooth device is connected")
       }
+    }
+    Text(text = "Adapter: " + bluetoothCommunication.bluetoothAdapter)
+    bluetoothCommunication.devices().orEmpty().forEach { bluetoothDevice ->
+      Text(text = "Bluetooth: ${bluetoothDevice.name}")
     }
   }
 }

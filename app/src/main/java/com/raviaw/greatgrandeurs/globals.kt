@@ -6,4 +6,4 @@
 //
 package com.raviaw.greatgrandeurs
 
-val TAG = "greatgrandeurs"
+val TAG = "com.raviaw.greatgrandeurs"
