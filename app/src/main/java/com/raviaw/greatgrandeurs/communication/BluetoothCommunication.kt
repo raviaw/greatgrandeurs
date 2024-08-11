@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.raviaw.greatgrandeurs.TAG
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,10 +26,23 @@ class BluetoothCommunication @Inject constructor(@ApplicationContext val context
   val bluetoothManager: BluetoothManager? by lazy { context.getSystemService(BluetoothManager::class.java) }
   val bluetoothAdapter: BluetoothAdapter? by lazy { bluetoothManager?.adapter }
 
+  override var selectedDevice: FoundBluetoothDevice? = null
+  override var bluetoothConnection: BluetoothConnection? = null
+
   override val adapterAvailable: Boolean
     get() = bluetoothAdapter != null
 
   override fun devices(): Set<FoundBluetoothDevice> = devicesInternal().map { FoundBluetoothDevice.fromDevice(it) }.toSet()
+
+  @SuppressLint("MissingPermission")
+  override fun connectToDevice(device: FoundBluetoothDevice) {
+    Log.d(TAG, "Connecting to device: $device")
+    val socket = device.nnNativeDevice.createRfcommSocketToServiceRecord(uuid)
+    socket.connect()
+
+    selectedDevice = device
+    bluetoothConnection = BluetoothConnection(device = device, socket = socket)
+  }
 
   private fun devicesInternal(): Set<BluetoothDevice> {
     Log.d(TAG, "Bluetooth adapter: $bluetoothAdapter")
@@ -64,5 +78,9 @@ class BluetoothCommunication @Inject constructor(@ApplicationContext val context
   init {
     Log.d(TAG, "Bluetooth manager: $bluetoothManager")
     Log.d(TAG, "Bluetooth adapter: $bluetoothAdapter")
+  }
+
+  companion object {
+    val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
   }
 }

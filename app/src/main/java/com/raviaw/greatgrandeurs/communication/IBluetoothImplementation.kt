@@ -6,9 +6,11 @@
 //
 package com.raviaw.greatgrandeurs.communication
 
-import android.bluetooth.BluetoothDevice
-
 interface IBluetoothImplementation {
-  val adapterAvailable:Boolean
+  val adapterAvailable: Boolean
+  var selectedDevice: FoundBluetoothDevice?
+  var bluetoothConnection: BluetoothConnection?
+
   fun devices(): Set<FoundBluetoothDevice>?
+  fun connectToDevice(device: FoundBluetoothDevice)
 }
