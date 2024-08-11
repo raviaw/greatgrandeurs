@@ -10,12 +10,14 @@ import android.bluetooth.BluetoothSocket
 import android.util.Log
 import com.raviaw.greatgrandeurs.TAG
 import org.json.JSONObject
+import java.io.BufferedOutputStream
 import kotlin.math.min
 
 class BluetoothConnection(val arduinoJsonProcessor: ArduinoJsonProcessor, val device: FoundBluetoothDevice, val socket: BluetoothSocket) {
   val buffer = ByteArray(1024)
   var pointer = 0
   val inputSocket = socket.inputStream
+  val outputSocket = BufferedOutputStream(socket.outputStream)
   var reads: Int = 0
   var lastLine: String? = null
 
@@ -69,6 +71,12 @@ class BluetoothConnection(val arduinoJsonProcessor: ArduinoJsonProcessor, val de
     lastLine = jsonBytes
 
     return obj
+  }
+
+  fun write(byteArray: ByteArray) {
+    Log.d(TAG, "Writing ${byteArray.size} bytes to serial")
+    outputSocket.write(byteArray)
+    outputSocket.flush()
   }
 
   private fun convertToObject(jsonBytes: String): JSONObject? {

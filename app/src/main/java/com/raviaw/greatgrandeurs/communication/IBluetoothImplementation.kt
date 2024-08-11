@@ -13,4 +13,5 @@ interface IBluetoothImplementation {
 
   fun devices(): Set<FoundBluetoothDevice>?
   fun connectToDevice(device: FoundBluetoothDevice)
+  fun sendTime()
 }

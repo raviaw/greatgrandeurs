@@ -55,6 +55,22 @@ class BluetoothCommunication @Inject constructor(
     bluetoothConnection = BluetoothConnection(arduinoJsonProcessor = arduinoJsonProcessor, device = device, socket = socket)
   }
 
+  override fun sendTime() {
+    Log.d(TAG, "Sending current time")
+    ArduinoCommand.SendTime.send(this)
+  }
+
+  fun writeToCurrentDevice(bytes: ByteArray) {
+    if (bluetoothConnection == null) {
+      Log.w(TAG, "There is no connection");
+      return;
+    }
+
+    // Writes
+    Log.d(TAG, "Writing bytes to serial");
+    bluetoothConnection?.write(bytes)
+  }
+
   private fun devicesInternal(): Set<BluetoothDevice> {
     Log.d(TAG, "Bluetooth adapter: $bluetoothAdapter")
 

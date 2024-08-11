@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,12 +52,14 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
   var lastBluetoothText by remember { mutableStateOf("") }
   var bluetoothTextCount by remember { mutableIntStateOf(0) }
   var selectedDeviceName by remember { mutableStateOf("No device") }
+  var bluetoothConnected by remember { mutableStateOf(false) }
   val scope = rememberCoroutineScope()
 
   LaunchedEffect(Unit) {
     while (true) {
       delay(500.milliseconds)
       selectedDeviceName = bluetoothCommunication.selectedDevice?.name ?: "No device"
+      bluetoothConnected = bluetoothCommunication.bluetoothConnection != null
       bluetoothCommunication.bluetoothConnection?.let {
         try {
           displayMessage = "Listening to device [${it.name}]"
@@ -90,6 +94,18 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
     }
   }
 
+  fun sendTime() {
+    displayMessage = "Sending time..."
+    try {
+      bluetoothCommunication.sendTime()
+    } catch (ex: Exception) {
+      Log.e(TAG, "Error sending time", ex)
+      displayMessage = "Error sending time: ${ex.message}"
+    }
+  }
+
+  val rowModifier = Modifier.padding(6.dp)
+
   Column(
     modifier = Modifier
       .statusBarsPadding()
@@ -100,14 +116,53 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
     horizontalAlignment = Alignment.Start,
     verticalArrangement = Arrangement.Top
   ) {
-    Text(text = "Make sure the bluetooth device is connected")
-    Text(text = "Adapter is valid: " + (bluetoothCommunication.adapterAvailable))
-    Spacer(modifier = Modifier.height(6.dp))
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineMedium, text = "Bluetooth")
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Current device")
+    Column(modifier = rowModifier) {
+      Text(text = "Make sure the bluetooth device is connected")
+      Text(text = "Adapter is valid: " + (bluetoothCommunication.adapterAvailable))
+    }
     //
-    Text(text = displayMessage)
     Spacer(modifier = Modifier.height(6.dp))
+    Row(modifier = rowModifier) {
+      Text(
+        modifier = Modifier.weight(0.6f),
+        text = "Selected device: $selectedDeviceName"
+      )
+      Column(modifier = Modifier.weight(0.4f)) {
+        Button(
+          modifier = Modifier.fillMaxWidth(),
+          content = {
+            Text(
+              if (bluetoothConnected) {
+                "Connected"
+              } else {
+                "Connect"
+              }
+            )
+          },
+          enabled = !bluetoothConnected,
+          onClick = { scope.launch(Dispatchers.IO) { connectToDevice(bluetoothCommunication.selectedDevice) } }
+        )
+        Button(
+          modifier = Modifier.fillMaxWidth(),
+          content = {
+            Text("Send time")
+          },
+          enabled = bluetoothConnected,
+          onClick = { scope.launch(Dispatchers.IO) { sendTime() } }
+        )
+      }
+    }
+
     //
-    Row() {
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Message information")
+    Spacer(modifier = Modifier.height(6.dp))
+    Text(modifier = rowModifier, text = displayMessage)
+
+    //
+    Spacer(modifier = Modifier.height(6.dp))
+    Row(modifier = rowModifier) {
       Text(
         modifier = Modifier.weight(0.2f),
         text = bluetoothTextCount.toString()
@@ -117,23 +172,19 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
         text = lastBluetoothText
       )
     }
+
+//    
     Spacer(modifier = Modifier.height(6.dp))
-    //
-    Row() {
-      Text(
-        modifier = Modifier.weight(0.4f),
-        text = "Selected device: $selectedDeviceName"
-      )
-      Button(
-        modifier = Modifier.weight(0.4f),
-        content = { Text("Listen") },
-        onClick = { scope.launch(Dispatchers.IO) { connectToDevice(bluetoothCommunication.selectedDevice) } })
-    }
-    Spacer(modifier = Modifier.height(6.dp))
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Devices")
     bluetoothCommunication.devices().orEmpty().forEach { bluetoothDevice ->
       Row(modifier = Modifier.padding(6.dp)) {
         Text(modifier = Modifier.weight(0.6f), text = "Bluetooth: ${bluetoothDevice.name}")
-        Button(modifier = Modifier.weight(0.4f), content = { Text("Use device") }, onClick = { useDevice(bluetoothDevice) })
+        Button(
+          modifier = Modifier.weight(0.4f),
+          content = { Text("Use device") },
+          onClick = { useDevice(bluetoothDevice) },
+          enabled = !bluetoothConnected
+        )
       }
     }
   }
@@ -158,6 +209,10 @@ fun BluetoothScreenPreview() {
       override fun connectToDevice(device: FoundBluetoothDevice) {
         throw UnsupportedOperationException()
       }
+
+      override fun sendTime() {
+        throw UnsupportedOperationException()
+      }
     }
     BluetoothScreen(modifier = Modifier, onBackClick = {}, bluetoothCommunication = bluetoothCommunication)
   }
@@ -176,6 +231,10 @@ fun BluetoothScreenNoDevicesPreview() {
       override fun devices(): Set<FoundBluetoothDevice> = emptySet()
 
       override fun connectToDevice(device: FoundBluetoothDevice) {
+        throw UnsupportedOperationException()
+      }
+
+      override fun sendTime() {
         throw UnsupportedOperationException()
       }
     }
