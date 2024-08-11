@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
+import com.raviaw.greatgrandeurs.communication.ArduinoState
 import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -20,6 +21,9 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
   @Inject
   lateinit var bluetoothCommunication: BluetoothCommunication
+
+  @Inject
+  lateinit var arduinoState: ArduinoState
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -36,7 +40,7 @@ class MainActivity : ComponentActivity() {
           modifier = Modifier.fillMaxSize(),
           color = MaterialTheme.colorScheme.background
         ) {
-          GreatGrandeursApp(bluetoothCommunication)
+          GreatGrandeursApp(bluetoothCommunication, arduinoState)
         }
       }
     }

@@ -12,29 +12,33 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.raviaw.greatgrandeurs.communication.ArduinoState
 import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
 import com.raviaw.greatgrandeurs.compose.BluetoothScreen
 import com.raviaw.greatgrandeurs.compose.HomeScreen
 import com.raviaw.greatgrandeurs.compose.MoveScreen
 
 @Composable
-fun GreatGrandeursApp(bluetoothCommunication: BluetoothCommunication) {
+fun GreatGrandeursApp(bluetoothCommunication: BluetoothCommunication, arduinoState: ArduinoState) {
   val navController = rememberNavController()
   GreatGrandeursNavHost(
     navController = navController,
-    bluetoothCommunication = bluetoothCommunication
+    bluetoothCommunication = bluetoothCommunication,
+    arduinoState = arduinoState
   )
 }
 
 @Composable
 fun GreatGrandeursNavHost(
   navController: NavHostController,
-  bluetoothCommunication: BluetoothCommunication
+  bluetoothCommunication: BluetoothCommunication,
+  arduinoState: ArduinoState
 ) {
   Log.d(TAG, "Initializing app")
   NavHost(navController = navController, startDestination = Screen.Home.route) {
     composable(route = Screen.Home.route) {
       HomeScreen(
+        arduinoState = arduinoState,
         onCalibrate = {
           navController.navigate(
             Screen.Calibrate.createRoute()

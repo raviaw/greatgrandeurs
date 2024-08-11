@@ -22,7 +22,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BluetoothCommunication @Inject constructor(@ApplicationContext val context: Context) : IBluetoothImplementation {
+class BluetoothCommunication @Inject constructor(
+  @ApplicationContext val context: Context,
+  val arduinoJsonProcessor: ArduinoJsonProcessor
+) : IBluetoothImplementation {
+  //
+
   val bluetoothManager: BluetoothManager? by lazy { context.getSystemService(BluetoothManager::class.java) }
   val bluetoothAdapter: BluetoothAdapter? by lazy { bluetoothManager?.adapter }
 
@@ -31,6 +36,12 @@ class BluetoothCommunication @Inject constructor(@ApplicationContext val context
 
   override val adapterAvailable: Boolean
     get() = bluetoothAdapter != null
+
+  var lastCommunicationTime: Long = -1
+
+  //
+  // Thread responsible for reading the arduino data
+  private val readThread = ReadThread().apply { start() }
 
   override fun devices(): Set<FoundBluetoothDevice> = devicesInternal().map { FoundBluetoothDevice.fromDevice(it) }.toSet()
 
@@ -41,7 +52,7 @@ class BluetoothCommunication @Inject constructor(@ApplicationContext val context
     socket.connect()
 
     selectedDevice = device
-    bluetoothConnection = BluetoothConnection(device = device, socket = socket)
+    bluetoothConnection = BluetoothConnection(arduinoJsonProcessor = arduinoJsonProcessor, device = device, socket = socket)
   }
 
   private fun devicesInternal(): Set<BluetoothDevice> {
@@ -74,6 +85,21 @@ class BluetoothCommunication @Inject constructor(@ApplicationContext val context
 //  @SuppressLint("MissingPermission")
 //  fun testConnection(bluetoothDevice: BluetoothDevice) {
 //  }
+
+  private inner class ReadThread : Thread("arduino-read-thread") {
+    override fun run() {
+      while (true) {
+        bluetoothConnection?.let {
+          val obj = it.readNextObject()
+          if (obj != null) {
+            lastCommunicationTime = System.currentTimeMillis()
+            arduinoJsonProcessor.processJson(obj)
+          }
+        }
+        sleep(250);
+      }
+    }
+  }
 
   init {
     Log.d(TAG, "Bluetooth manager: $bluetoothManager")

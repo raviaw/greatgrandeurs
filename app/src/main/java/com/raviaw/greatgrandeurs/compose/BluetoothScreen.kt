@@ -59,7 +59,6 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
       bluetoothCommunication.bluetoothConnection?.let {
         try {
           displayMessage = "Listening to device [${it.name}]"
-          it.readNextLines()
           lastBluetoothText = it.lastLine ?: "No message"
           bluetoothTextCount = it.reads
         } catch (ex: Exception) {

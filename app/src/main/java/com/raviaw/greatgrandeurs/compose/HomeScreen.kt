@@ -23,19 +23,25 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.raviaw.greatgrandeurs.communication.ArduinoState
 import com.raviaw.greatgrandeurs.formatCoordinate
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun HomeScreen(
   modifier: Modifier = Modifier,
+  arduinoState: ArduinoState,
   onCalibrate: () -> Unit,
   onMove: () -> Unit,
   onFind: () -> Unit,
@@ -43,14 +49,24 @@ fun HomeScreen(
   onBluetooth: () -> Unit,
   onSettings: () -> Unit,
 ) {
-  val azimuth by remember { mutableDoubleStateOf(0.0) }
-  val altitude by remember { mutableDoubleStateOf(0.0) }
-  val rightAscension by remember { mutableDoubleStateOf(0.0) }
-  val declination by remember { mutableDoubleStateOf(0.0) }
+  var rightAscension by remember { mutableDoubleStateOf(0.0) }
+  var declination by remember { mutableDoubleStateOf(0.0) }
+  var altitude by remember { mutableDoubleStateOf(0.0) }
+  var azimuth by remember { mutableDoubleStateOf(0.0) }
 
   val textColumnModifier = Modifier.fillMaxWidth()
   val textModifier = Modifier
     .fillMaxWidth(0.4f)
+
+  LaunchedEffect(Unit) {
+    while (true) {
+      delay(500.milliseconds)
+      rightAscension = arduinoState.ra
+      declination = arduinoState.dec
+      altitude = arduinoState.alt
+      azimuth = arduinoState.azm
+    }
+  }
 
   Column(
     modifier = Modifier
@@ -65,21 +81,6 @@ fun HomeScreen(
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       OutlinedTextField(
         modifier = textModifier.weight(1.0f),
-        value = azimuth.formatCoordinate(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("Azimuth") })
-      Spacer(modifier = Modifier.width(6.dp))
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = altitude.formatCoordinate(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("Altitude") })
-    }
-    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
         value = rightAscension.formatCoordinate(),
         onValueChange = {},
         readOnly = true,
@@ -91,6 +92,22 @@ fun HomeScreen(
         onValueChange = {},
         readOnly = true,
         label = { Text("Declination") })
+    }
+    Spacer(modifier = Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = altitude.formatCoordinate(),
+        onValueChange = {},
+        readOnly = true,
+        label = { Text("Altitude") })
+      Spacer(modifier = Modifier.width(6.dp))
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = azimuth.formatCoordinate(),
+        onValueChange = {},
+        readOnly = true,
+        label = { Text("Azimuth") })
     }
     Spacer(modifier = Modifier.height(6.dp))
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
@@ -134,6 +151,7 @@ fun HomeScreen(
         onClick = { onSettings() }
       )
     }
+    Spacer(modifier = Modifier.height(6.dp))
   }
 }
 
@@ -141,6 +159,6 @@ fun HomeScreen(
 @Composable
 fun HomeScreenPreview() {
   GreatGrandeursTheme {
-    HomeScreen(modifier = Modifier, onCalibrate = {}, onMove = {}, onFind = {}, onReport = {}, onBluetooth = {}, onSettings = {})
+    HomeScreen(modifier = Modifier, arduinoState = ArduinoState(), onCalibrate = {}, onMove = {}, onFind = {}, onReport = {}, onBluetooth = {}, onSettings = {})
   }
 }
