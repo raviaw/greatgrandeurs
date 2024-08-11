@@ -21,34 +21,45 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BluetoothCommunication @Inject constructor(@ApplicationContext val context: Context) {
-  val bluetoothManager: BluetoothManager? = context.getSystemService(BluetoothManager::class.java)
-  val bluetoothAdapter: BluetoothAdapter? = bluetoothManager?.adapter
+class BluetoothCommunication @Inject constructor(@ApplicationContext val context: Context) : IBluetoothImplementation {
+  val bluetoothManager: BluetoothManager? by lazy { context.getSystemService(BluetoothManager::class.java) }
+  val bluetoothAdapter: BluetoothAdapter? by lazy { bluetoothManager?.adapter }
 
-  fun devices(): Set<BluetoothDevice>? {
+  override val adapterAvailable: Boolean
+    get() = bluetoothAdapter != null
+
+  override fun devices(): Set<FoundBluetoothDevice> = devicesInternal().map { FoundBluetoothDevice.fromDevice(it) }.toSet()
+
+  private fun devicesInternal(): Set<BluetoothDevice> {
     Log.d(TAG, "Bluetooth adapter: $bluetoothAdapter")
 
     val bluetoothAdapter = bluetoothAdapter
     if (bluetoothAdapter == null) {
-      return null
+      Log.d(TAG, "Bluetooth is not accessible - adapter is null")
+      return emptySet()
     }
 
     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-      Log.d(TAG, "Bluetooth is not accessible")
-      return null
+      Log.d(TAG, "Bluetooth is not accessible - no permissions")
+      return emptySet()
     }
 
     val devices = bluetoothAdapter.bondedDevices
-    Log.d(TAG, "Bluetooth is not accessible: $devices")
-    return devices
+    Log.d(TAG, "Bluetooth is not accessible: $devices is null")
+
+    return devices.orEmpty()
   }
 
-  @SuppressLint("MissingPermission")
-  fun connectNamedDevice(name: String = "HC-06"): BluetoothDevice? {
-    val devices = devices().orEmpty()
-    val device = devices.find { it.name == name }
-    return device
-  }
+//  @SuppressLint("MissingPermission")
+//  fun connectNamedDevice(name: String = "HC-06"): BluetoothDevice? {
+//    val devices = devices().orEmpty()
+//    val device = devices.find { it.name == name }
+//    return device
+//  }
+
+//  @SuppressLint("MissingPermission")
+//  fun testConnection(bluetoothDevice: BluetoothDevice) {
+//  }
 
   init {
     Log.d(TAG, "Bluetooth manager: $bluetoothManager")
