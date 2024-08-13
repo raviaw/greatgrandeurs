@@ -14,7 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
 import com.raviaw.greatgrandeurs.compose.BluetoothScreen
-import com.raviaw.greatgrandeurs.compose.CalibrateScreen
+import com.raviaw.greatgrandeurs.compose.CalibrationScreen
 import com.raviaw.greatgrandeurs.compose.HomeScreen
 import com.raviaw.greatgrandeurs.compose.MoveScreen
 import com.raviaw.greatgrandeurs.state.ApplicationState
@@ -87,8 +87,9 @@ fun GreatGrandeursNavHost(
       route = Screen.Calibrate.route,
       arguments = Screen.Calibrate.navArguments
     ) {
-      CalibrateScreen(
+      CalibrationScreen(
         starTargets = starTargets,
+        calibrationState = applicationState.calibrationState,
         onBackClick = { navController.navigateUp() }
       )
     }

@@ -13,4 +13,5 @@ import javax.inject.Singleton
 class ApplicationState @Inject constructor() {
   val arduinoState: ArduinoState = ArduinoState()
   val bluetoothState: BluetoothState = BluetoothState()
+  val calibrationState: CalibrationState = CalibrationState()
 }

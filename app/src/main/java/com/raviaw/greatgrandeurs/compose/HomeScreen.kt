@@ -69,7 +69,6 @@ fun HomeScreen(
 
   LaunchedEffect(Unit) {
     while (true) {
-      delay(500.milliseconds)
       selectedDeviceName = applicationState.bluetoothState.selectedDevice?.name ?: "No device"
       bluetoothConnected = applicationState.bluetoothState.bluetoothConnection != null
 
@@ -77,6 +76,8 @@ fun HomeScreen(
       declination = applicationState.arduinoState.dec
       altitude = applicationState.arduinoState.alt
       azimuth = applicationState.arduinoState.azm
+
+      delay(500.milliseconds)
     }
   }
 

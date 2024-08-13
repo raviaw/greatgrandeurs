@@ -38,34 +38,37 @@ import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.standardPadding
+import com.raviaw.greatgrandeurs.state.CalibrationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun CalibrateScreen(modifier: Modifier = Modifier, starTargets: StarTargets, onBackClick: () -> Unit) {
+fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: CalibrationState, starTargets: StarTargets, onBackClick: () -> Unit) {
   val textColumnModifier = Modifier.fillMaxWidth()
   val textModifier = Modifier
     .fillMaxWidth(0.4f)
 
   val rowModifier = Modifier.standardPadding()
 
-  var firstStarName by remember { mutableStateOf("") }
-  var secondStarName by remember { mutableStateOf("") }
-
   var starCanvasTargets by remember { mutableStateOf<List<StarCanvasTarget>>(emptyList()) }
 
-  LaunchedEffect(firstStarName, secondStarName) {
-    val localCanvasTargets = mutableListOf<StarCanvasTarget>()
+  LaunchedEffect(Unit) {
+    while (true) {
+      val localCanvasTargets = mutableListOf<StarCanvasTarget>()
 
-    val firstTarget = starTargets.targets.find { it.targetName == firstStarName }
-    if (firstTarget != null) {
-      localCanvasTargets.add(StarCanvasTarget(firstTarget.targetName, Color.Yellow, firstTarget))
-    }
-    val secondTarget = starTargets.targets.find { it.targetName == secondStarName }
-    if (secondTarget != null) {
-      localCanvasTargets.add(StarCanvasTarget(secondTarget.targetName, Color.Cyan, secondTarget))
-    }
+      calibrationState.firstStarTarget?.let {
+        localCanvasTargets.add(StarCanvasTarget(it.targetName, Color.Yellow, it))
+      }
+      calibrationState.secondStarTarget?.let {
+        localCanvasTargets.add(StarCanvasTarget(it.targetName, Color.Cyan, it))
+      }
 
-    starCanvasTargets = localCanvasTargets
+      starCanvasTargets = localCanvasTargets
+
+      //
+      delay(500.milliseconds)
+    }
   }
 
   Column(
@@ -81,45 +84,29 @@ fun CalibrateScreen(modifier: Modifier = Modifier, starTargets: StarTargets, onB
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineMedium, text = "Calibration")
     VerticalSpacer()
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "First Star")
-    StarPicker(rowModifier, textColumnModifier, starTargets, Color.Yellow) { firstStarName = it }
+    StarPicker(
+      rowModifier = rowModifier,
+      textColumnModifier = textColumnModifier,
+      starTargets = starTargets,
+      color = Color.Yellow,
+      thisTarget = { calibrationState.firstStarTarget },
+      otherTarget = { calibrationState.secondStarTarget },
+      otherTargetColor = Color.Cyan
+    ) { calibrationState.firstStarTarget = it }
     VerticalSpacer()
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Second Star")
-    StarPicker(rowModifier, textColumnModifier, starTargets, Color.Cyan) { secondStarName = it }
+    StarPicker(
+      rowModifier = rowModifier,
+      textColumnModifier = textColumnModifier,
+      starTargets = starTargets,
+      color = Color.Cyan,
+      thisTarget = { calibrationState.secondStarTarget },
+      otherTarget = { calibrationState.firstStarTarget },
+      otherTargetColor = Color.Yellow
+    ) { calibrationState.secondStarTarget = it }
     VerticalSpacer()
     StarCanvas(modifier = Modifier.standardPadding(), targets = starCanvasTargets)
   }
-//    Row(modifier = rowModifier) {
-//      Text(
-//        modifier = Modifier.weight(0.6f),
-//        text = "Selected device: $selectedDeviceName"
-//      )
-//      Column(modifier = Modifier.weight(0.4f)) {
-//        Button(
-//          modifier = Modifier.fillMaxWidth(),
-//          content = {
-//            Text(
-//              if (buttonBusy) {
-//                "Busy"
-//              } else if (bluetoothConnected) {
-//                "Connected"
-//              } else {
-//                "Connect"
-//              }
-//            )
-//          },
-//          enabled = !bluetoothConnected && !buttonBusy,
-//          onClick = { scope.launch(Dispatchers.IO) { connectToDevice(bluetoothCommunication.selectedDevice) } }
-//        )
-//        Button(
-//          modifier = Modifier.fillMaxWidth(),
-//          content = {
-//            Text("Send time")
-//          },
-//          enabled = bluetoothConnected,
-//          onClick = { scope.launch(Dispatchers.IO) { sendTime() } }
-//        )
-//      }
-//    }
 }
 
 @Composable
@@ -128,15 +115,17 @@ private fun StarPicker(
   textColumnModifier: Modifier,
   starTargets: StarTargets,
   color: Color,
-  onStarSelected: (String) -> Unit
+  thisTarget: () -> StarTargets.Target?,
+  otherTarget: () -> StarTargets.Target?,
+  otherTargetColor: Color,
+  onStarSelected: (StarTargets.Target) -> Unit,
 ) {
-  var starName by remember { mutableStateOf("") }
   var starExpanded by remember { mutableStateOf(false) }
 
   //
   Row(verticalAlignment = Alignment.CenterVertically, modifier = rowModifier) {
     OutlinedTextField(
-      value = starName,
+      value = thisTarget()?.targetName.orEmpty(),
       onValueChange = {},
       readOnly = true,
       label = { Text("Star name") })
@@ -154,7 +143,10 @@ private fun StarPicker(
       modifier = textColumnModifier.weight(0.6f)
     ) {
       starTargets.targets.map {
+        val otherTargetResolved = otherTarget()
+        val otherStar = it == otherTargetResolved
         DropdownMenuItem(modifier = Modifier.fillMaxWidth(),
+          enabled = !otherStar,
           text = {
             Column {
               Row(modifier = Modifier.fillMaxWidth()) {
@@ -162,13 +154,17 @@ private fun StarPicker(
                 Text(modifier = Modifier.width(90.dp), text = it.raShort)
                 Text(modifier = Modifier.width(90.dp), text = it.decShort)
               }
-              SimpleStarCanvas(target = it, width = 50.dp, height = 40.dp, color = color)
+              SimpleStarCanvas(
+                target = it,
+                width = 50.dp,
+                height = 40.dp,
+                color = if (otherStar) otherTargetColor else color
+              )
             }
           },
           onClick = {
-            starName = it.targetName
             starExpanded = false
-            onStarSelected(starName)
+            onStarSelected(it)
           }
         )
       }
