@@ -10,14 +10,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -34,14 +31,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.StandardPadding
 import com.raviaw.greatgrandeurs.VerticalSpacer
-import com.raviaw.greatgrandeurs.communication.ArduinoState
-import com.raviaw.greatgrandeurs.communication.IBluetoothImplementation
 import com.raviaw.greatgrandeurs.formatCoordinate
 import com.raviaw.greatgrandeurs.standardPadding
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -49,8 +44,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun HomeScreen(
   modifier: Modifier = Modifier,
-  arduinoState: ArduinoState,
-  bluetoothCommunication: IBluetoothImplementation,
+  applicationState: ApplicationState,
   onCalibrate: () -> Unit,
   onMove: () -> Unit,
   onFind: () -> Unit,
@@ -76,13 +70,13 @@ fun HomeScreen(
   LaunchedEffect(Unit) {
     while (true) {
       delay(500.milliseconds)
-      selectedDeviceName = bluetoothCommunication.selectedDevice?.name ?: "No device"
-      bluetoothConnected = bluetoothCommunication.bluetoothConnection != null
+      selectedDeviceName = applicationState.bluetoothState.selectedDevice?.name ?: "No device"
+      bluetoothConnected = applicationState.bluetoothState.bluetoothConnection != null
 
-      rightAscension = arduinoState.ra
-      declination = arduinoState.dec
-      altitude = arduinoState.alt
-      azimuth = arduinoState.azm
+      rightAscension = applicationState.arduinoState.ra
+      declination = applicationState.arduinoState.dec
+      altitude = applicationState.arduinoState.alt
+      azimuth = applicationState.arduinoState.azm
     }
   }
 
@@ -178,7 +172,7 @@ fun HomeScreen(
       contentAlignment = Alignment.Center,
       modifier = basePadding.fillMaxSize()
     ) {
-      CoordinatesCanvas(arduinoState = arduinoState)
+      CoordinatesCanvas(arduinoState = applicationState.arduinoState)
     }
   }
 }
@@ -189,8 +183,7 @@ fun HomeScreenPreview() {
   GreatGrandeursTheme {
     HomeScreen(
       modifier = Modifier,
-      arduinoState = ArduinoState(),
-      bluetoothCommunication = IBluetoothImplementation.EMPTY,
+      applicationState = ApplicationState(),
       onCalibrate = {},
       onMove = {},
       onFind = {},

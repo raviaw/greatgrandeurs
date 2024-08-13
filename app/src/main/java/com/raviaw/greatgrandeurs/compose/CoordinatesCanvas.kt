@@ -23,7 +23,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.raviaw.greatgrandeurs.TAG
-import com.raviaw.greatgrandeurs.communication.ArduinoState
+import com.raviaw.greatgrandeurs.state.ArduinoState
 import com.raviaw.greatgrandeurs.mapDouble
 
 @Composable

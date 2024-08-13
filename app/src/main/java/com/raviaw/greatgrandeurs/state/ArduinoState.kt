@@ -4,13 +4,9 @@
 //
 // $Id$
 //
-package com.raviaw.greatgrandeurs.communication
+package com.raviaw.greatgrandeurs.state
 
-import javax.inject.Inject
-import javax.inject.Singleton
-
-@Singleton
-class ArduinoState @Inject constructor() {
+class ArduinoState constructor() {
   var ra: Double = 12.0
   var dec: Double = 0.0
   var alt: Double = 0.0

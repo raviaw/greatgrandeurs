@@ -11,8 +11,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
-import com.raviaw.greatgrandeurs.communication.ArduinoState
+import com.raviaw.greatgrandeurs.state.ArduinoState
 import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,7 +25,7 @@ class MainActivity : ComponentActivity() {
   lateinit var bluetoothCommunication: BluetoothCommunication
 
   @Inject
-  lateinit var arduinoState: ArduinoState
+  lateinit var applicationState: ApplicationState
 
   @Inject
   lateinit var starTargets: StarTargets
@@ -44,7 +45,7 @@ class MainActivity : ComponentActivity() {
           modifier = Modifier.fillMaxSize(),
           color = MaterialTheme.colorScheme.background
         ) {
-          GreatGrandeursApp(bluetoothCommunication = bluetoothCommunication, arduinoState = arduinoState, starTargets = starTargets)
+          GreatGrandeursApp(bluetoothCommunication = bluetoothCommunication, applicationState = applicationState, starTargets = starTargets)
         }
       }
     }

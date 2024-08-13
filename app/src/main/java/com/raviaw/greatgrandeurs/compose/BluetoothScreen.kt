@@ -33,10 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.raviaw.greatgrandeurs.TAG
 import com.raviaw.greatgrandeurs.VerticalSpacer
-import com.raviaw.greatgrandeurs.communication.BluetoothConnection
 import com.raviaw.greatgrandeurs.communication.FoundBluetoothDevice
 import com.raviaw.greatgrandeurs.communication.IBluetoothImplementation
 import com.raviaw.greatgrandeurs.standardPadding
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -45,7 +45,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @SuppressLint("MissingPermission")
 @Composable
-fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBluetoothImplementation, onBackClick: () -> Unit) {
+fun BluetoothScreen(
+  modifier: Modifier = Modifier,
+  applicationState: ApplicationState,
+  bluetoothCommunication: IBluetoothImplementation,
+  onBackClick: () -> Unit
+) {
   var displayMessage by remember { mutableStateOf("No error") }
   var lastBluetoothText by remember { mutableStateOf("") }
   var bluetoothTextCount by remember { mutableIntStateOf(0) }
@@ -57,9 +62,9 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
   LaunchedEffect(Unit) {
     while (true) {
       delay(500.milliseconds)
-      selectedDeviceName = bluetoothCommunication.selectedDevice?.name ?: "No device"
-      bluetoothConnected = bluetoothCommunication.bluetoothConnection != null
-      bluetoothCommunication.bluetoothConnection?.let {
+      selectedDeviceName = applicationState.bluetoothState.selectedDevice?.name ?: "No device"
+      bluetoothConnected = applicationState.bluetoothState.bluetoothConnection != null
+      applicationState.bluetoothState.bluetoothConnection?.let {
         try {
           displayMessage = "Listening to device [${it.name}]"
           lastBluetoothText = it.lastLine ?: "No message"
@@ -76,7 +81,7 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
   }
 
   fun useDevice(bluetoothDevice: FoundBluetoothDevice) {
-    bluetoothCommunication.selectedDevice = bluetoothDevice
+    applicationState.bluetoothState.selectedDevice = bluetoothDevice
   }
 
   fun connectToDevice(bluetoothDevice: FoundBluetoothDevice?) {
@@ -126,7 +131,7 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
     }
     //
     VerticalSpacer()
-    Row(modifier = rowModifier,verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = rowModifier, verticalAlignment = Alignment.CenterVertically) {
       Text(
         modifier = Modifier.weight(0.6f),
         text = "Selected device: $selectedDeviceName"
@@ -146,7 +151,7 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
             )
           },
           enabled = !bluetoothConnected && !buttonBusy,
-          onClick = { scope.launch(Dispatchers.IO) { connectToDevice(bluetoothCommunication.selectedDevice) } }
+          onClick = { scope.launch(Dispatchers.IO) { connectToDevice(applicationState.bluetoothState.selectedDevice) } }
         )
         Button(
           modifier = Modifier.fillMaxWidth(),
@@ -201,8 +206,6 @@ fun BluetoothScreenPreview() {
   GreatGrandeursTheme {
     val bluetoothCommunication = object : IBluetoothImplementation {
       override val adapterAvailable: Boolean = true
-      override var selectedDevice: FoundBluetoothDevice? = null
-      override var bluetoothConnection: BluetoothConnection? = null
 
       override fun devices(): Set<FoundBluetoothDevice> = setOf(
         FoundBluetoothDevice("Test 1", "AA:AA:AA:AA:AA:00", null),
@@ -218,7 +221,7 @@ fun BluetoothScreenPreview() {
         throw UnsupportedOperationException()
       }
     }
-    BluetoothScreen(modifier = Modifier, onBackClick = {}, bluetoothCommunication = bluetoothCommunication)
+    BluetoothScreen(modifier = Modifier, onBackClick = {}, bluetoothCommunication = bluetoothCommunication, applicationState = ApplicationState())
   }
 }
 
@@ -228,6 +231,6 @@ fun BluetoothScreenPreview() {
 fun BluetoothScreenNoDevicesPreview() {
   GreatGrandeursTheme {
     val bluetoothCommunication = IBluetoothImplementation.EMPTY
-    BluetoothScreen(modifier = Modifier, onBackClick = {}, bluetoothCommunication = bluetoothCommunication)
+    BluetoothScreen(modifier = Modifier, onBackClick = {}, bluetoothCommunication = bluetoothCommunication, applicationState = ApplicationState())
   }
 }

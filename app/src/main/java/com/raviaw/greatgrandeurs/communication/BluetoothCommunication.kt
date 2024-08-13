@@ -16,6 +16,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.raviaw.greatgrandeurs.TAG
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import javax.inject.Inject
@@ -24,15 +25,13 @@ import javax.inject.Singleton
 @Singleton
 class BluetoothCommunication @Inject constructor(
   @ApplicationContext val context: Context,
+  val applicationState: ApplicationState,
   val arduinoJsonProcessor: ArduinoJsonProcessor
 ) : IBluetoothImplementation {
   //
 
   val bluetoothManager: BluetoothManager? by lazy { context.getSystemService(BluetoothManager::class.java) }
   val bluetoothAdapter: BluetoothAdapter? by lazy { bluetoothManager?.adapter }
-
-  override var selectedDevice: FoundBluetoothDevice? = null
-  override var bluetoothConnection: BluetoothConnection? = null
 
   override val adapterAvailable: Boolean
     get() = bluetoothAdapter != null
@@ -51,8 +50,8 @@ class BluetoothCommunication @Inject constructor(
     val socket = device.nnNativeDevice.createRfcommSocketToServiceRecord(uuid)
     socket.connect()
 
-    selectedDevice = device
-    bluetoothConnection = BluetoothConnection(arduinoJsonProcessor = arduinoJsonProcessor, device = device, socket = socket)
+    applicationState.bluetoothState.selectedDevice = device
+    applicationState.bluetoothState.bluetoothConnection = BluetoothConnection(arduinoJsonProcessor = arduinoJsonProcessor, device = device, socket = socket)
   }
 
   override fun sendTime() {
@@ -61,14 +60,14 @@ class BluetoothCommunication @Inject constructor(
   }
 
   fun writeToCurrentDevice(bytes: ByteArray) {
-    if (bluetoothConnection == null) {
+    if (applicationState.bluetoothState.bluetoothConnection == null) {
       Log.w(TAG, "There is no connection");
       return;
     }
 
     // Writes
     Log.d(TAG, "Writing bytes to serial");
-    bluetoothConnection?.write(bytes)
+    applicationState.bluetoothState.bluetoothConnection?.write(bytes)
   }
 
   private fun devicesInternal(): Set<BluetoothDevice> {
@@ -105,7 +104,7 @@ class BluetoothCommunication @Inject constructor(
   private inner class ReadThread : Thread("arduino-read-thread") {
     override fun run() {
       while (true) {
-        bluetoothConnection?.let {
+        applicationState.bluetoothState.bluetoothConnection?.let {
           val obj = it.readNextObject()
           if (obj != null) {
             lastCommunicationTime = System.currentTimeMillis()

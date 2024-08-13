@@ -6,12 +6,15 @@
 //
 package com.raviaw.greatgrandeurs.communication
 
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ArduinoJsonProcessor @Inject constructor(val arduinoState: ArduinoState) {
+class ArduinoJsonProcessor @Inject constructor(applicationState: ApplicationState) {
+  private val arduinoState = applicationState.arduinoState
+
   fun processJson(jsonObject: JSONObject) {
     arduinoState.ra = jsonObject.getDouble("ra")
     arduinoState.azm = jsonObject.getDouble("azm")
