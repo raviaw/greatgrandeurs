@@ -36,9 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.TAG
+import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.communication.BluetoothConnection
 import com.raviaw.greatgrandeurs.communication.FoundBluetoothDevice
 import com.raviaw.greatgrandeurs.communication.IBluetoothImplementation
+import com.raviaw.greatgrandeurs.standardPadding
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -53,6 +55,7 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
   var bluetoothTextCount by remember { mutableIntStateOf(0) }
   var selectedDeviceName by remember { mutableStateOf("No device") }
   var bluetoothConnected by remember { mutableStateOf(false) }
+  var buttonBusy by remember { mutableStateOf(false) }
   val scope = rememberCoroutineScope()
 
   LaunchedEffect(Unit) {
@@ -81,6 +84,7 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
   }
 
   fun connectToDevice(bluetoothDevice: FoundBluetoothDevice?) {
+    buttonBusy = true
     displayMessage = "Connecting to device..."
     try {
       if (bluetoothDevice == null) {
@@ -91,6 +95,8 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
     } catch (ex: Exception) {
       Log.e(TAG, "Error listening to device $bluetoothDevice", ex)
       displayMessage = "Error listening to device $bluetoothDevice: ${ex.message}"
+    } finally {
+      buttonBusy = false
     }
   }
 
@@ -104,14 +110,14 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
     }
   }
 
-  val rowModifier = Modifier.padding(6.dp)
+  val rowModifier = Modifier.standardPadding()
 
   Column(
     modifier = Modifier
       .statusBarsPadding()
+      .standardPadding()
       .verticalScroll(rememberScrollState())
       .fillMaxSize()
-      .padding(6.dp)
       .safeDrawingPadding(),
     horizontalAlignment = Alignment.Start,
     verticalArrangement = Arrangement.Top
@@ -123,7 +129,7 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
       Text(text = "Adapter is valid: " + (bluetoothCommunication.adapterAvailable))
     }
     //
-    Spacer(modifier = Modifier.height(6.dp))
+    VerticalSpacer()
     Row(modifier = rowModifier) {
       Text(
         modifier = Modifier.weight(0.6f),
@@ -134,14 +140,16 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
           modifier = Modifier.fillMaxWidth(),
           content = {
             Text(
-              if (bluetoothConnected) {
+              if (buttonBusy) {
+                "Busy"
+              } else if (bluetoothConnected) {
                 "Connected"
               } else {
                 "Connect"
               }
             )
           },
-          enabled = !bluetoothConnected,
+          enabled = !bluetoothConnected && !buttonBusy,
           onClick = { scope.launch(Dispatchers.IO) { connectToDevice(bluetoothCommunication.selectedDevice) } }
         )
         Button(
@@ -157,11 +165,11 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
 
     //
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Message information")
-    Spacer(modifier = Modifier.height(6.dp))
+    VerticalSpacer()
     Text(modifier = rowModifier, text = displayMessage)
 
     //
-    Spacer(modifier = Modifier.height(6.dp))
+    VerticalSpacer()
     Row(modifier = rowModifier) {
       Text(
         modifier = Modifier.weight(0.2f),
@@ -174,10 +182,10 @@ fun BluetoothScreen(modifier: Modifier = Modifier, bluetoothCommunication: IBlue
     }
 
 //    
-    Spacer(modifier = Modifier.height(6.dp))
+    VerticalSpacer()
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Devices")
     bluetoothCommunication.devices().orEmpty().forEach { bluetoothDevice ->
-      Row(modifier = Modifier.padding(6.dp)) {
+      Row(modifier = Modifier.standardPadding()) {
         Text(modifier = Modifier.weight(0.6f), text = "Bluetooth: ${bluetoothDevice.name}")
         Button(
           modifier = Modifier.weight(0.4f),
@@ -223,21 +231,7 @@ fun BluetoothScreenPreview() {
 @Composable
 fun BluetoothScreenNoDevicesPreview() {
   GreatGrandeursTheme {
-    val bluetoothCommunication = object : IBluetoothImplementation {
-      override val adapterAvailable: Boolean = false
-      override var selectedDevice: FoundBluetoothDevice? = null
-      override var bluetoothConnection: BluetoothConnection? = null
-
-      override fun devices(): Set<FoundBluetoothDevice> = emptySet()
-
-      override fun connectToDevice(device: FoundBluetoothDevice) {
-        throw UnsupportedOperationException()
-      }
-
-      override fun sendTime() {
-        throw UnsupportedOperationException()
-      }
-    }
+    val bluetoothCommunication = IBluetoothImplementation.EMPTY
     BluetoothScreen(modifier = Modifier, onBackClick = {}, bluetoothCommunication = bluetoothCommunication)
   }
 }

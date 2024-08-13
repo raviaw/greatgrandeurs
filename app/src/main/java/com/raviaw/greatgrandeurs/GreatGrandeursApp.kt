@@ -40,6 +40,7 @@ fun GreatGrandeursNavHost(
     composable(route = Screen.Home.route) {
       HomeScreen(
         arduinoState = arduinoState,
+        bluetoothCommunication = bluetoothCommunication,
         onCalibrate = {
           navController.navigate(
             Screen.Calibrate.createRoute()

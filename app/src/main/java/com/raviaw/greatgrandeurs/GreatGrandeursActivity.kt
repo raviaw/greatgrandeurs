@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
 
   @Inject
   lateinit var arduinoState: ArduinoState
-
+  
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
