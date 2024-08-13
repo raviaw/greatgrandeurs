@@ -65,7 +65,7 @@ fun HomeScreen(
 
   var selectedDeviceName by remember { mutableStateOf("No device") }
   var bluetoothConnected by remember { mutableStateOf(false) }
-  
+
   val textColumnModifier = Modifier
     .fillMaxWidth()
     .padding(StandardPadding)
@@ -132,7 +132,8 @@ fun HomeScreen(
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
         content = { Text("Calibrate") },
-        enabled = bluetoothConnected,
+        //enabled = bluetoothConnected,
+        enabled = true,
         modifier = textModifier.weight(1.0f),
         onClick = { onCalibrate() }
       )

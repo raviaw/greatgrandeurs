@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.raviaw.greatgrandeurs.TAG
 import com.raviaw.greatgrandeurs.communication.ArduinoState
+import com.raviaw.greatgrandeurs.mapDouble
 
 @Composable
 fun CoordinatesCanvas(arduinoState: ArduinoState) {
@@ -99,6 +100,3 @@ private fun DrawScope.drawCoordinates(arduinoState: ArduinoState, textMeasurer: 
   }
 }
 
-private fun mapDouble(x: Double, inMin: Double, inMax: Double, outMin: Double, outMax: Double): Double {
-  return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
-}

@@ -18,14 +18,16 @@ import com.raviaw.greatgrandeurs.compose.BluetoothScreen
 import com.raviaw.greatgrandeurs.compose.CalibrateScreen
 import com.raviaw.greatgrandeurs.compose.HomeScreen
 import com.raviaw.greatgrandeurs.compose.MoveScreen
+import com.raviaw.greatgrandeurs.tracking.StarTargets
 
 @Composable
-fun GreatGrandeursApp(bluetoothCommunication: BluetoothCommunication, arduinoState: ArduinoState) {
+fun GreatGrandeursApp(bluetoothCommunication: BluetoothCommunication, arduinoState: ArduinoState, starTargets: StarTargets) {
   val navController = rememberNavController()
   GreatGrandeursNavHost(
     navController = navController,
     bluetoothCommunication = bluetoothCommunication,
-    arduinoState = arduinoState
+    arduinoState = arduinoState,
+    starTargets = starTargets
   )
 }
 
@@ -33,7 +35,8 @@ fun GreatGrandeursApp(bluetoothCommunication: BluetoothCommunication, arduinoSta
 fun GreatGrandeursNavHost(
   navController: NavHostController,
   bluetoothCommunication: BluetoothCommunication,
-  arduinoState: ArduinoState
+  arduinoState: ArduinoState,
+  starTargets: StarTargets
 ) {
   Log.d(TAG, "Initializing app")
   NavHost(navController = navController, startDestination = Screen.Home.route) {
@@ -86,6 +89,7 @@ fun GreatGrandeursNavHost(
       arguments = Screen.Calibrate.navArguments
     ) {
       CalibrateScreen(
+        starTargets = starTargets,
         onBackClick = { navController.navigateUp() }
       )
     }
