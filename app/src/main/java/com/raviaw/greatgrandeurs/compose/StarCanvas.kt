@@ -27,10 +27,10 @@ import com.raviaw.greatgrandeurs.mapDouble
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 
 @Composable
-fun StarCanvas(targets: List<StarCanvasTarget>) {
+fun StarCanvas(modifier: Modifier, targets: List<StarCanvasTarget>) {
   val textMeasurer = rememberTextMeasurer()
   Box(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxSize()
       .defaultMinSize(minHeight = 200.dp)
       .drawBehind { drawCoordinates(targets = targets, textMeasurer = textMeasurer) }
@@ -46,7 +46,7 @@ private fun DrawScope.drawCoordinates(targets: List<StarCanvasTarget>, textMeasu
     )
     for (starTarget in targets) {
       val raLine = mapDouble(starTarget.starTarget.raNum, 0.0, 24.0, 0.0, size.width * 1.0).toFloat()
-      drawLine(Color.Yellow, Offset(raLine, 0.0f), Offset(raLine, size.height))
+      drawLine(starTarget.targetColor, Offset(raLine, 0.0f), Offset(raLine, size.height))
       drawText(
         textMeasurer = textMeasurer,
         text = "${starTarget.targetName} RA: " + starTarget.starTarget.raShort,
@@ -59,7 +59,7 @@ private fun DrawScope.drawCoordinates(targets: List<StarCanvasTarget>, textMeasu
       )
 
       val decLine = mapDouble(starTarget.starTarget.decNum, -90.0, +90.0, 0.0, size.height * 1.0).toFloat()
-      drawLine(Color.Yellow, Offset(0.0f, decLine), Offset(size.width, decLine))
+      drawLine(starTarget.targetColor, Offset(0.0f, decLine), Offset(size.width, decLine))
       drawText(
         textMeasurer = textMeasurer,
         text = "${starTarget.targetName} DEC: " + starTarget.starTarget.decShort,

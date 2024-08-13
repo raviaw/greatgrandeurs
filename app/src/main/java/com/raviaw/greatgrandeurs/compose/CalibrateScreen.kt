@@ -86,8 +86,7 @@ fun CalibrateScreen(modifier: Modifier = Modifier, starTargets: StarTargets, onB
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Second Star")
     StarPicker(rowModifier, textColumnModifier, starTargets, Color.Cyan) { secondStarName = it }
     VerticalSpacer()
-    VerticalSpacer()
-    StarCanvas(targets = starCanvasTargets)
+    StarCanvas(modifier = Modifier.standardPadding(), targets = starCanvasTargets)
   }
 //    Row(modifier = rowModifier) {
 //      Text(
