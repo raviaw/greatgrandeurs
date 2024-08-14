@@ -11,4 +11,5 @@ import com.raviaw.greatgrandeurs.tracking.StarTargets
 class CalibrationState {
   var firstStarTarget: StarTargets.Target? = null
   var secondStarTarget: StarTargets.Target? = null
+  var currentCalibrating: StarTargets.Target? = null
 }

@@ -63,6 +63,8 @@ dependencies {
   androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
   androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
   androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+  testImplementation("junit:junit:4.13.2")
+  testImplementation("io.mockk:mockk:1.13.12")
   debugImplementation("androidx.compose.ui:ui-tooling")
   debugImplementation("androidx.compose.ui:ui-test-manifest")
   kapt("com.google.dagger:hilt-android-compiler:2.51.1")

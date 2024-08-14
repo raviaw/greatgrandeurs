@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -53,6 +54,11 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
 
   var starCanvasTargets by remember { mutableStateOf<List<StarCanvasTarget>>(emptyList()) }
 
+  var starTarget1 by remember { mutableStateOf<StarTargets.Target?>(null) }
+  var starTarget2 by remember { mutableStateOf<StarTargets.Target?>(null) }
+
+  var calibrateDialogOpen by remember { mutableStateOf(false) }
+
   LaunchedEffect(Unit) {
     while (true) {
       val localCanvasTargets = mutableListOf<StarCanvasTarget>()
@@ -63,6 +69,8 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
       calibrationState.secondStarTarget?.let {
         localCanvasTargets.add(StarCanvasTarget(it.targetName, Color.Cyan, it))
       }
+      starTarget1 = calibrationState.firstStarTarget
+      starTarget2 = calibrationState.secondStarTarget
 
       starCanvasTargets = localCanvasTargets
 
@@ -106,7 +114,53 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
     ) { calibrationState.secondStarTarget = it }
     VerticalSpacer()
     StarCanvas(modifier = Modifier.standardPadding(), targets = starCanvasTargets)
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Calibrate")
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      Button(
+        content = { if (starTarget1 != null) Text("Find ${starTarget1!!.targetName}") else Text("Waiting...") },
+        //enabled = bluetoothConnected,
+        enabled = starTarget1 != null,
+        modifier = textModifier.weight(1.0f),
+        onClick = { onStarTarget1(calibrationState) { calibrateDialogOpen = true } }
+      )
+      HorizontalSpacer()
+      Button(
+        content = { if (starTarget2 != null) Text("Find ${starTarget2!!.targetName}") else Text("Waiting...") },
+        enabled = starTarget2 != null,
+        modifier = textModifier.weight(1.0f),
+        onClick = { onStarTarget2(calibrationState) { calibrateDialogOpen = true } }
+      )
+    }
+    VerticalSpacer()
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      Button(
+        content = { Text("Complete Calibration Process") },
+        //enabled = bluetoothConnected,
+        enabled = starTarget1 != null && starTarget2 != null,
+        modifier = textModifier.weight(1.0f),
+        onClick = { onCalibrationComplete(calibrationState) }
+      )
+    }
+
+    CalibrateMoveDialog(calibrationState = calibrationState, dialogVisible = calibrateDialogOpen, onDismissRequest = { calibrateDialogOpen = false })
   }
+}
+
+private fun onStarTarget1(calibrationState: CalibrationState, showDialog: () -> Unit) {
+  calibrationState.currentCalibrating = calibrationState.firstStarTarget
+  if (calibrationState.currentCalibrating != null) {
+    showDialog()
+  }
+}
+
+private fun onStarTarget2(calibrationState: CalibrationState, showDialog: () -> Unit) {
+  calibrationState.currentCalibrating = calibrationState.secondStarTarget
+  if (calibrationState.currentCalibrating != null) {
+    showDialog()
+  }
+}
+
+private fun onCalibrationComplete(calibrationState: CalibrationState) {
 }
 
 @Composable

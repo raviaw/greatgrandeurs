@@ -6,6 +6,8 @@
 //
 package com.raviaw.greatgrandeurs.communication
 
+import android.util.Log
+import com.raviaw.greatgrandeurs.TAG
 import com.raviaw.greatgrandeurs.state.ApplicationState
 import org.json.JSONObject
 import javax.inject.Inject
@@ -16,6 +18,8 @@ class ArduinoJsonProcessor @Inject constructor(applicationState: ApplicationStat
   private val arduinoState = applicationState.arduinoState
 
   fun processJson(jsonObject: JSONObject) {
+    Log.d(TAG, "Processing object: $jsonObject")
+
     arduinoState.ra = jsonObject.getDouble("ra")
     arduinoState.azm = jsonObject.getDouble("azm")
     arduinoState.dec = jsonObject.getDouble("dec")

@@ -105,10 +105,12 @@ class BluetoothCommunication @Inject constructor(
     override fun run() {
       while (true) {
         applicationState.bluetoothState.bluetoothConnection?.let {
-          val obj = it.readNextObject()
-          if (obj != null) {
+          val objects = it.readNextObjects()
+          if (objects.isNotEmpty()) {
             lastCommunicationTime = System.currentTimeMillis()
-            arduinoJsonProcessor.processJson(obj)
+            for (obj in objects) {
+              arduinoJsonProcessor.processJson(obj)
+            }
           }
         }
         sleep(250);
