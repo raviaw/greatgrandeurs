@@ -48,6 +48,9 @@ sealed class Screen(
     fun createRoute() = "settings"
   }
 
+  data object MoveControls : Screen(route = "moveControls") {
+    fun createRoute() = "moveControls"
+  }
 //    data object Gallery : Screen(
 //        route = "gallery/{plantName}",
 //        navArguments = listOf(navArgument("plantName") {

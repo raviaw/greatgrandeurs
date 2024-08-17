@@ -11,11 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import com.raviaw.greatgrandeurs.communication.BluetoothCommunication
 import com.raviaw.greatgrandeurs.compose.BluetoothScreen
 import com.raviaw.greatgrandeurs.compose.CalibrationScreen
 import com.raviaw.greatgrandeurs.compose.HomeScreen
+import com.raviaw.greatgrandeurs.compose.MoveControlsDialog
 import com.raviaw.greatgrandeurs.compose.MoveScreen
 import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
@@ -90,6 +92,8 @@ fun GreatGrandeursNavHost(
       CalibrationScreen(
         starTargets = starTargets,
         calibrationState = applicationState.calibrationState,
+        onMoveControlsDialog = { navController.navigate(Screen.MoveControls.route) },
+        arduinoCommander = bluetoothCommunication,
         onBackClick = { navController.navigateUp() }
       )
     }
@@ -102,6 +106,15 @@ fun GreatGrandeursNavHost(
         applicationState = applicationState,
         onBackClick = { navController.navigateUp() }
       )
+    }
+    dialog(
+      route = Screen.MoveControls.route,
+      arguments = Screen.Bluetooth.navArguments
+    ) {
+      MoveControlsDialog(
+        calibrationState = applicationState.calibrationState,
+        arduinoCommander = bluetoothCommunication,
+        onDismiss = { navController.navigateUp() })
     }
 //    composable(
 //      route = Screen.Gallery.route,

@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.raviaw.greatgrandeurs.TAG
 import com.raviaw.greatgrandeurs.state.ApplicationState
+import com.raviaw.greatgrandeurs.tracking.StarTargets
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import javax.inject.Inject
@@ -30,12 +31,13 @@ class BluetoothCommunication @Inject constructor(
 ) : IBluetoothImplementation {
   //
 
-  val bluetoothManager: BluetoothManager? by lazy { context.getSystemService(BluetoothManager::class.java) }
-  val bluetoothAdapter: BluetoothAdapter? by lazy { bluetoothManager?.adapter }
+  private val bluetoothManager: BluetoothManager? by lazy { context.getSystemService(BluetoothManager::class.java) }
+  private val bluetoothAdapter: BluetoothAdapter? by lazy { bluetoothManager?.adapter }
 
   override val adapterAvailable: Boolean
     get() = bluetoothAdapter != null
-
+  override val connected: Boolean
+    get() = applicationState.bluetoothState.bluetoothConnection != null
   var lastCommunicationTime: Long = -1
 
   //
@@ -54,10 +56,51 @@ class BluetoothCommunication @Inject constructor(
     applicationState.bluetoothState.bluetoothConnection = BluetoothConnection(arduinoJsonProcessor = arduinoJsonProcessor, device = device, socket = socket)
   }
 
+  // region Commands
+  //
+
   override fun sendTime() {
     Log.d(TAG, "Sending current time")
-    ArduinoCommand.SendTime.send(this)
+    ArduinoCommand.Time.send(this)
   }
+
+  override fun sendSlaveMode() {
+    Log.d(TAG, "Sending slave mode")
+    ArduinoCommand.SlaveMode.send(this)
+  }
+
+  override fun sendMasterMode() {
+    Log.d(TAG, "Sending mater mode")
+    ArduinoCommand.MasterMode.send(this)
+  }
+
+  override fun sendStartCalibrating(index: Int, starTarget: StarTargets.Target) {
+    Log.d(TAG, "Sending start calibrating ($index, target: $starTarget)")
+    ArduinoCommand.StartCalibrating(index, starTarget).send(this)
+  }
+
+  override fun sendCalibratingMoveSpeed(x: Int, y: Int) {
+    Log.d(TAG, "Sending move speed ($x, $y)")
+    ArduinoCommand.CalibratingMoveSpeed(x, y).send(this)
+  }
+
+  override fun sendCalibratingMoveStop() {
+    Log.d(TAG, "Sending move stop")
+    ArduinoCommand.CalibratingMoveStop.send(this)
+  }
+
+  override fun sendStoreCalibration() {
+    Log.d(TAG, "Sending store calibration")
+    ArduinoCommand.StoreCalibration.send(this)
+  }
+
+  override fun sendCalibrationCompleted() {
+    Log.d(TAG, "Sending calibration completed")
+    ArduinoCommand.CalibrationCompleted.send(this)
+  }
+
+  //
+  // endregion
 
   fun writeToCurrentDevice(bytes: ByteArray) {
     if (applicationState.bluetoothState.bluetoothConnection == null) {

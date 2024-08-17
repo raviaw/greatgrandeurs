@@ -38,14 +38,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.VerticalSpacer
+import com.raviaw.greatgrandeurs.communication.ArduinoCommander
 import com.raviaw.greatgrandeurs.standardPadding
 import com.raviaw.greatgrandeurs.state.CalibrationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
-fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: CalibrationState, starTargets: StarTargets, onBackClick: () -> Unit) {
+fun CalibrationScreen(
+  modifier: Modifier = Modifier,
+  calibrationState: CalibrationState,
+  starTargets: StarTargets,
+  arduinoCommander: ArduinoCommander,
+  onMoveControlsDialog: () -> Unit,
+  onBackClick: () -> Unit
+) {
   val textColumnModifier = Modifier.fillMaxWidth()
   val textModifier = Modifier
     .fillMaxWidth(0.4f)
@@ -57,7 +66,7 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
   var starTarget1 by remember { mutableStateOf<StarTargets.Target?>(null) }
   var starTarget2 by remember { mutableStateOf<StarTargets.Target?>(null) }
 
-  var calibrateDialogOpen by remember { mutableStateOf(false) }
+  var slaveSent by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) {
     while (true) {
@@ -79,8 +88,18 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
     }
   }
 
+  LaunchedEffect(Unit) {
+    while (true) {
+      if (!slaveSent) {
+        arduinoCommander.sendSlaveMode()
+        slaveSent = true
+      }
+      delay(1.seconds)
+    }
+  }
+
   Column(
-    modifier = Modifier
+    modifier = modifier
       .statusBarsPadding()
       .standardPadding()
       .verticalScroll(rememberScrollState())
@@ -121,14 +140,14 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
         //enabled = bluetoothConnected,
         enabled = starTarget1 != null,
         modifier = textModifier.weight(1.0f),
-        onClick = { onStarTarget1(calibrationState) { calibrateDialogOpen = true } }
+        onClick = { onStarTarget1(calibrationState, arduinoCommander, onMoveControlsDialog) }
       )
       HorizontalSpacer()
       Button(
         content = { if (starTarget2 != null) Text("Find ${starTarget2!!.targetName}") else Text("Waiting...") },
         enabled = starTarget2 != null,
         modifier = textModifier.weight(1.0f),
-        onClick = { onStarTarget2(calibrationState) { calibrateDialogOpen = true } }
+        onClick = { onStarTarget2(calibrationState, arduinoCommander, onMoveControlsDialog) }
       )
     }
     VerticalSpacer()
@@ -138,29 +157,31 @@ fun CalibrationScreen(modifier: Modifier = Modifier, calibrationState: Calibrati
         //enabled = bluetoothConnected,
         enabled = starTarget1 != null && starTarget2 != null,
         modifier = textModifier.weight(1.0f),
-        onClick = { onCalibrationComplete(calibrationState) }
+        onClick = { onCalibrationComplete(calibrationState, arduinoCommander, onBackClick) }
       )
     }
-
-    CalibrateMoveDialog(calibrationState = calibrationState, dialogVisible = calibrateDialogOpen, onDismissRequest = { calibrateDialogOpen = false })
   }
 }
 
-private fun onStarTarget1(calibrationState: CalibrationState, showDialog: () -> Unit) {
+private fun onStarTarget1(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, navigateToMoveControls: () -> Unit) {
   calibrationState.currentCalibrating = calibrationState.firstStarTarget
   if (calibrationState.currentCalibrating != null) {
-    showDialog()
+    arduinoCommander.sendStartCalibrating(0, calibrationState.currentCalibrating!!)
+    navigateToMoveControls()
   }
 }
 
-private fun onStarTarget2(calibrationState: CalibrationState, showDialog: () -> Unit) {
+private fun onStarTarget2(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, navigateToMoveControls: () -> Unit) {
   calibrationState.currentCalibrating = calibrationState.secondStarTarget
   if (calibrationState.currentCalibrating != null) {
-    showDialog()
+    arduinoCommander.sendStartCalibrating(1, calibrationState.currentCalibrating!!)
+    navigateToMoveControls()
   }
 }
 
-private fun onCalibrationComplete(calibrationState: CalibrationState) {
+private fun onCalibrationComplete(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, onBackClick: () -> Unit) {
+  arduinoCommander.sendCalibrationCompleted()
+  onBackClick()
 }
 
 @Composable
@@ -210,7 +231,6 @@ private fun StarPicker(
               }
               SimpleStarCanvas(
                 target = it,
-                width = 50.dp,
                 height = 40.dp,
                 color = if (otherStar) otherTargetColor else color
               )

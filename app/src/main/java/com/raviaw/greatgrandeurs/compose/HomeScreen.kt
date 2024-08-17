@@ -30,14 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.StandardPadding
 import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.formatCoordinate
 import com.raviaw.greatgrandeurs.standardPadding
 import com.raviaw.greatgrandeurs.state.ApplicationState
-import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -178,18 +176,19 @@ fun HomeScreen(
   }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-  GreatGrandeursTheme {
-    HomeScreen(
-      modifier = Modifier,
-      applicationState = ApplicationState(),
-      onCalibrate = {},
-      onMove = {},
-      onFind = {},
-      onReport = {},
-      onBluetooth = {},
-      onSettings = {})
-  }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview() {
+//  GreatGrandeursTheme {
+//    HomeScreen(
+//      modifier = Modifier,
+//      applicationState = ApplicationState(),
+//      navController = navController,
+//      onCalibrate = {},
+//      onMove = {},
+//      onFind = {},
+//      onReport = {},
+//      onBluetooth = {},
+//      onSettings = {})
+//  }
+//}

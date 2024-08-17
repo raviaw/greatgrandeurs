@@ -206,6 +206,7 @@ fun BluetoothScreenPreview() {
   GreatGrandeursTheme {
     val bluetoothCommunication = object : IBluetoothImplementation {
       override val adapterAvailable: Boolean = true
+      override val connected: Boolean = false
 
       override fun devices(): Set<FoundBluetoothDevice> = setOf(
         FoundBluetoothDevice("Test 1", "AA:AA:AA:AA:AA:00", null),
@@ -214,10 +215,6 @@ fun BluetoothScreenPreview() {
       )
 
       override fun connectToDevice(device: FoundBluetoothDevice) {
-        throw UnsupportedOperationException()
-      }
-
-      override fun sendTime() {
         throw UnsupportedOperationException()
       }
     }

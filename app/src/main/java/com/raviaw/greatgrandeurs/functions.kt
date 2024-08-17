@@ -11,3 +11,11 @@ fun Double.formatCoordinate(): String {
 fun mapDouble(input: Double, inMin: Double, inMax: Double, outMin: Double, outMax: Double): Double {
   return (input - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 }
+
+fun mapFloat(input: Float, inMin: Float, inMax: Float, outMin: Float, outMax: Float): Float {
+  return (input - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+}
+
+fun mapInt(input: Int, inMin: Int, inMax: Int, outMin: Int, outMax: Int): Int {
+  return (input - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+}
