@@ -10,7 +10,7 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 
 class FoundBluetoothDevice(val name: String, val address: String, val nativeDevice: BluetoothDevice?) {
-  val nnNativeDevice = requireNotNull(nativeDevice) { "No native device was found" }
+  val nnNativeDevice by lazy { requireNotNull(nativeDevice) { "No native device was found" } }
 
   companion object {
     @SuppressLint("MissingPermission")

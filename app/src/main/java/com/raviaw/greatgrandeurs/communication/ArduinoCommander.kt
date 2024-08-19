@@ -10,9 +10,10 @@ import com.raviaw.greatgrandeurs.tracking.StarTargets
 
 interface ArduinoCommander {
   val connected: Boolean
+  val arduinoSlaveMode: Boolean
   fun sendTime() {}
-  fun sendSlaveMode() {}
-  fun sendMasterMode() {}
+  fun sendArduinoSlaveMode() {}
+  fun sendArduinoFreeMode() {}
   fun sendStartCalibrating(index: Int, starTarget: StarTargets.Target) {}
   fun sendCalibratingMoveSpeed(x: Int, y: Int) {}
   fun sendCalibratingMoveStop() {}

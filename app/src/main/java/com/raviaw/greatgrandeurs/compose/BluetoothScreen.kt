@@ -23,7 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,7 +53,7 @@ fun BluetoothScreen(
 ) {
   var displayMessage by remember { mutableStateOf("No error") }
   var lastBluetoothText by remember { mutableStateOf("") }
-  var bluetoothTextCount by remember { mutableIntStateOf(0) }
+  var bluetoothTextCount by remember { mutableLongStateOf(0) }
   var selectedDeviceName by remember { mutableStateOf("No device") }
   var bluetoothConnected by remember { mutableStateOf(false) }
   var buttonBusy by remember { mutableStateOf(false) }
@@ -114,7 +114,7 @@ fun BluetoothScreen(
   val rowModifier = Modifier.standardPadding()
 
   Column(
-    modifier = Modifier
+    modifier = modifier
       .statusBarsPadding()
       .standardPadding()
       .verticalScroll(rememberScrollState())
@@ -127,7 +127,13 @@ fun BluetoothScreen(
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Current device")
     Column(modifier = rowModifier) {
       Text(text = "Make sure the bluetooth device is connected")
-      Text(text = "Adapter is valid: " + (bluetoothCommunication.adapterAvailable))
+      Text(
+        text = if (bluetoothCommunication.adapterAvailable) {
+          "Bluetooth adapter found"
+        } else {
+          "No bluetooth available"
+        }
+      )
     }
     //
     VerticalSpacer()
@@ -161,6 +167,25 @@ fun BluetoothScreen(
           enabled = bluetoothConnected,
           onClick = { scope.launch(Dispatchers.IO) { sendTime() } }
         )
+        Button(
+          modifier = Modifier.fillMaxWidth(),
+          content = {
+            if (bluetoothCommunication.arduinoSlaveMode) {
+              Text("Free Arduino")
+            } else {
+              Text("Slave Arduino")
+            }
+          },
+          enabled = bluetoothConnected,
+          onClick = {
+            scope.launch(Dispatchers.IO) {
+              if (bluetoothCommunication.arduinoSlaveMode) {
+                bluetoothCommunication.sendArduinoFreeMode()
+              } else {
+                bluetoothCommunication.sendArduinoSlaveMode()
+              }
+            }
+          })
       }
     }
 
@@ -207,6 +232,7 @@ fun BluetoothScreenPreview() {
     val bluetoothCommunication = object : IBluetoothImplementation {
       override val adapterAvailable: Boolean = true
       override val connected: Boolean = false
+      override val arduinoSlaveMode: Boolean = false
 
       override fun devices(): Set<FoundBluetoothDevice> = setOf(
         FoundBluetoothDevice("Test 1", "AA:AA:AA:AA:AA:00", null),

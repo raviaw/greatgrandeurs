@@ -40,6 +40,11 @@ class BluetoothCommunication @Inject constructor(
     get() = applicationState.bluetoothState.bluetoothConnection != null
   var lastCommunicationTime: Long = -1
 
+  override val arduinoSlaveMode: Boolean
+    get() = this.localArduinoSlaveMode
+
+  private var localArduinoSlaveMode = false
+
   //
   // Thread responsible for reading the arduino data
   private val readThread = ReadThread().apply { start() }
@@ -64,14 +69,16 @@ class BluetoothCommunication @Inject constructor(
     ArduinoCommand.Time.send(this)
   }
 
-  override fun sendSlaveMode() {
+  override fun sendArduinoSlaveMode() {
     Log.d(TAG, "Sending slave mode")
     ArduinoCommand.SlaveMode.send(this)
+    this.localArduinoSlaveMode = true
   }
 
-  override fun sendMasterMode() {
+  override fun sendArduinoFreeMode() {
     Log.d(TAG, "Sending mater mode")
     ArduinoCommand.MasterMode.send(this)
+    this.localArduinoSlaveMode = false
   }
 
   override fun sendStartCalibrating(index: Int, starTarget: StarTargets.Target) {

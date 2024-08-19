@@ -91,7 +91,7 @@ fun CalibrationScreen(
   LaunchedEffect(Unit) {
     while (true) {
       if (!slaveSent) {
-        arduinoCommander.sendSlaveMode()
+        arduinoCommander.sendArduinoSlaveMode()
         slaveSent = true
       }
       delay(1.seconds)

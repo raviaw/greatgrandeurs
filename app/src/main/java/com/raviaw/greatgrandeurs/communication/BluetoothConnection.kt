@@ -18,7 +18,7 @@ class BluetoothConnection(val arduinoJsonProcessor: ArduinoJsonProcessor, val de
   private val inputSocket = socket.inputStream
   private val outputSocket = BufferedOutputStream(socket.outputStream)
 
-  var reads: Int = 0
+  var reads: Long = 0
   var lastLine: String? = null
   val name = device.name
 
@@ -30,7 +30,14 @@ class BluetoothConnection(val arduinoJsonProcessor: ArduinoJsonProcessor, val de
       return emptyList()
     }
 
-    return bluetoothMessageParser.processByteBuffer(buffer, readNow).mapNotNull { it.obj }
+    val messages = bluetoothMessageParser.processByteBuffer(buffer, readNow)
+    if (messages.isNotEmpty()) {
+      val lastMessage = messages.last()
+      lastLine = lastMessage.str
+    }
+    reads += messages.size
+
+    return messages.mapNotNull { it.obj }
   }
 
   fun write(byteArray: ByteArray) {

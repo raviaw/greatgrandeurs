@@ -16,6 +16,7 @@ interface IBluetoothImplementation : ArduinoCommander {
     val EMPTY = object : IBluetoothImplementation {
       override val adapterAvailable: Boolean = false
       override val connected: Boolean = false
+      override val arduinoSlaveMode: Boolean = false
 
       override fun devices(): Set<FoundBluetoothDevice> = emptySet()
 
