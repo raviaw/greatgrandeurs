@@ -49,6 +49,24 @@ sealed class ArduinoCommand() {
     }
   }
 
+  object LightsOn : ArduinoCommand() {
+    override val commandName = "lights-on"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  object LightsOff : ArduinoCommand() {
+    override val commandName = "lights-off"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
   object Time : ArduinoCommand() {
     override val commandName = "time"
     private val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.000", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
@@ -68,24 +86,26 @@ sealed class ArduinoCommand() {
     override fun send(bluetoothCommunication: BluetoothCommunication) {
       val jsonObject = startJsonObject()
       jsonObject.put("index", index)
+      jsonObject.put("starIndex", starTarget.starIndex)
       jsonObject.put("target", starTarget.targetName)
       sendJsonObject(bluetoothCommunication, jsonObject)
     }
   }
 
-  class CalibratingMoveSpeed(private val x: Int, private val y: Int) : ArduinoCommand() {
+  class CalibratingMoveSpeed(private val x: Int, private val y: Int, private val speed: Int) : ArduinoCommand() {
     override val commandName = "c-move"
 
     override fun send(bluetoothCommunication: BluetoothCommunication) {
       val jsonObject = startJsonObject()
-      jsonObject.put("x", x)
-      jsonObject.put("y", y)
+      val multiplier = speed / 100.0
+      jsonObject.put("x", (x * multiplier).toInt())
+      jsonObject.put("y", (y * multiplier).toInt())
       sendJsonObject(bluetoothCommunication, jsonObject)
     }
   }
 
   object CalibratingMoveStop : ArduinoCommand() {
-    override val commandName = "stop"
+    override val commandName = "c-stop"
 
     override fun send(bluetoothCommunication: BluetoothCommunication) {
       val jsonObject = startJsonObject()
@@ -104,6 +124,15 @@ sealed class ArduinoCommand() {
 
   object CalibrationCompleted : ArduinoCommand() {
     override val commandName = "c-done"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  object SendMenuMain : ArduinoCommand() {
+    override val commandName = "menu-main"
 
     override fun send(bluetoothCommunication: BluetoothCommunication) {
       val jsonObject = startJsonObject()

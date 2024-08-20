@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -186,6 +187,25 @@ fun BluetoothScreen(
               }
             }
           })
+        Button(
+          modifier = Modifier.fillMaxWidth(),
+          content = {
+            if (bluetoothCommunication.arduinoLightsOn) {
+              Text("Lights Off")
+            } else {
+              Text("Lights On")
+            }
+          },
+          enabled = bluetoothConnected,
+          onClick = {
+            scope.launch(Dispatchers.IO) {
+              if (bluetoothCommunication.arduinoLightsOn) {
+                bluetoothCommunication.sendLightsOff()
+              } else {
+                bluetoothCommunication.sendLightsOn()
+              }
+            }
+          })
       }
     }
 
@@ -233,6 +253,7 @@ fun BluetoothScreenPreview() {
       override val adapterAvailable: Boolean = true
       override val connected: Boolean = false
       override val arduinoSlaveMode: Boolean = false
+      override val arduinoLightsOn: Boolean = false
 
       override fun devices(): Set<FoundBluetoothDevice> = setOf(
         FoundBluetoothDevice("Test 1", "AA:AA:AA:AA:AA:00", null),

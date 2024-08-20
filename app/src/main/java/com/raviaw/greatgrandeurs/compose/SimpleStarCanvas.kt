@@ -74,7 +74,14 @@ fun SimpleStarCanvasPreview() {
       horizontalAlignment = Alignment.Start,
       verticalArrangement = Arrangement.Top
     ) {
-      SimpleStarCanvas(StarTargets.Target("Test", "Test", "", "10", "40"), 40.dp, Color.Cyan)
+      SimpleStarCanvas(StarTargets.Target(
+        starIndex = 0,
+        target = "Test",
+        targetName = "Test",
+        special = "",
+        ra = "10",
+        dec = "40"
+      ), 40.dp, Color.Cyan)
     }
   }
 }

@@ -9,8 +9,11 @@ package com.raviaw.greatgrandeurs.compose
 import android.util.Log
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -31,24 +34,44 @@ fun MoveGridCanvas(
   activePoint: Point,
   activeColor: Color,
   boxSize: Float,
+  speed: Float,
   numberOfLines: Int,
+  onSpeedChange: (Float) -> Unit,
   onBoxInput: (BoxInput) -> Unit,
   onGlobalPositioned: (LayoutCoordinates) -> Unit
 ) {
-  Box(
-    modifier = modifier
-      .fillMaxWidth()
-      .height(400.dp)
-      .drawBehind { drawGrid(boxSize = boxSize, numberOfLines = numberOfLines, layoutSize = layoutSize, activePoint = activePoint, activeColor = activeColor) }
-      .onGloballyPositioned { onGlobalPositioned(it) }
-      .pointerInput(Unit) {
-        detectDragGestures { change, dragAmount ->
-          val boxInput = BoxInput(change.position.x, change.position.y)
-          onBoxInput(boxInput)
-          Log.d("location", "${change.position}")
+  Column(
+    modifier = modifier.fillMaxSize()
+  ) {
+    Slider(
+      value = speed,
+      onValueChange = onSpeedChange,
+      steps = 100,
+      valueRange = 0f..100f
+    )
+    Box(
+      modifier = modifier
+        .fillMaxWidth()
+        .height(400.dp)
+        .drawBehind {
+          drawGrid(
+            boxSize = boxSize,
+            numberOfLines = numberOfLines,
+            layoutSize = layoutSize,
+            activePoint = activePoint,
+            activeColor = activeColor
+          )
         }
-      }
-  )
+        .onGloballyPositioned { onGlobalPositioned(it) }
+        .pointerInput(Unit) {
+          detectDragGestures { change, dragAmount ->
+            val boxInput = BoxInput(change.position.x, change.position.y)
+            onBoxInput(boxInput)
+            Log.d("location", "${change.position}")
+          }
+        }
+    )
+  }
 }
 
 data class Point(val x: Int, val y: Int)

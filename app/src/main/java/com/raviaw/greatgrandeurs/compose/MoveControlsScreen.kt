@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,7 +64,12 @@ private val colorMap = (1..midway).associateWith { index ->
 }
 
 @Composable
-fun MoveControlsScreen(modifier: Modifier = Modifier, calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, onDismiss: () -> Unit) {
+fun MoveControlsScreen(
+  modifier: Modifier = Modifier,
+  calibrationState: CalibrationState,
+  arduinoCommander: ArduinoCommander,
+  onDismiss: () -> Unit
+) {
   val textColumnModifier = Modifier.fillMaxWidth()
   val textModifier = Modifier
     .fillMaxWidth(0.4f)
@@ -75,6 +81,7 @@ fun MoveControlsScreen(modifier: Modifier = Modifier, calibrationState: Calibrat
   var layoutSize by remember { mutableStateOf<Size?>(null) }
   var activePoint by remember { mutableStateOf(Point(midway, midway)) }
   var boxInput by remember { mutableStateOf<BoxInput?>(null) }
+  var speed by remember { mutableFloatStateOf(50f) }
 
   var horizontalCommand by remember { mutableStateOf("Stopped") }
   var verticalCommand by remember { mutableStateOf("Stopped") }
@@ -104,7 +111,9 @@ fun MoveControlsScreen(modifier: Modifier = Modifier, calibrationState: Calibrat
                 inMax = layoutSize.width,
                 outMin = 0f,
                 outMax = boxSize
-              ).toInt(), min = 0, max = midway * 2
+              ).toInt(),
+              min = 0,
+              max = midway * 2
             ),
             withinBoundaries(
               value = mapFloat(
@@ -113,31 +122,42 @@ fun MoveControlsScreen(modifier: Modifier = Modifier, calibrationState: Calibrat
                 inMax = layoutSize.height,
                 outMin = 0f,
                 outMax = boxSize
-              ).toInt(), min = 0, max = midway * 2
+              ).toInt(),
+              min = 0,
+              max = midway * 2
             )
           )
       }
     }
   }
 
-  LaunchedEffect(activePoint) {
+  LaunchedEffect(activePoint, speed) {
     val horizontalSpeed = activePoint.x - midway
     val verticalSpeed = activePoint.y - midway
+
+    //
+    // Formats the information
     val format = DecimalFormat("0")
     format.positivePrefix = "+"
     if (horizontalSpeed == 0) {
       horizontalCommand = "Stopped"
     } else {
-      horizontalCommand = "Moving at ${format.format(horizontalSpeed)} turtles"
+      horizontalCommand = "Moving at ${format.format(horizontalSpeed)}"
     }
     if (verticalSpeed == 0) {
       verticalCommand = "Stopped"
     } else {
-      verticalCommand = "Moving at ${format.format(verticalSpeed)} turtles"
+      verticalCommand = "Moving at ${format.format(verticalSpeed)}"
     }
     maxSpeed = max(abs(horizontalSpeed), abs(verticalSpeed))
     activeColor = colorMap.getOrElse(maxSpeed) { Color.Black }
-    arduinoCommander.sendCalibratingMoveSpeed(horizontalSpeed, verticalSpeed)
+
+    //
+    // Sends the command
+    // All parameters are between -100..100
+    val sendHorizontalSpeed = mapInt(horizontalSpeed, -midway, midway, -100, 100)
+    val sendVerticalSpeed = mapInt(verticalSpeed, -midway, midway, -100, 100)
+    arduinoCommander.sendCalibratingMoveSpeed(sendHorizontalSpeed, sendVerticalSpeed, speed)
   }
 
   val onDismissRequest: () -> Unit = {
@@ -171,14 +191,16 @@ fun MoveControlsScreen(modifier: Modifier = Modifier, calibrationState: Calibrat
       SimpleStarCanvas(target = calibrateStarTarget!!, height = 40.dp, color = Color.White)
     }
     VerticalSpacer()
-    Text(modifier = rowModifier, text = "Grid:")
+    Text(modifier = rowModifier, text = "Speed/ move:")
     MoveGridCanvas(
       boxSize = boxSize,
       numberOfLines = numberOfLines,
       layoutSize = layoutSize,
       activePoint = activePoint,
       activeColor = activeColor,
+      speed = speed,
       onBoxInput = { boxInput = it },
+      onSpeedChange = { speed = it },
       onGlobalPositioned = { layoutSize = it.size.toSize() })
     VerticalSpacer()
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
@@ -239,6 +261,7 @@ fun MoveControlsDialogPreview() {
       modifier = Modifier,
       calibrationState = CalibrationState().apply {
         this.currentCalibrating = StarTargets.Target(
+          starIndex = 0,
           target = "Betelgeuse",
           targetName = "Betelgeuse",
           special = "",
@@ -248,6 +271,8 @@ fun MoveControlsDialogPreview() {
       },
       arduinoCommander = object : ArduinoCommander {
         override val connected: Boolean = false
+        override val arduinoSlaveMode: Boolean = false
+        override val arduinoLightsOn: Boolean = true
       },
       onDismiss = {}
     )

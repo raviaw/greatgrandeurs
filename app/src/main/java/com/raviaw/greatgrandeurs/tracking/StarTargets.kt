@@ -19,10 +19,11 @@ class StarTargets @Inject constructor(@ApplicationContext val context: Context) 
     val lines = InputStreamReader(context.resources.openRawResource(R.raw.stars)).use {
       it.readLines()
     }
-    targets = lines.map { Target.fromString(it) }
+    targets = lines.withIndex().map { Target.fromString(starIndex = it.index, str = it.value) }
   }
 
   class Target(
+    val starIndex: Int,
     val target: String,
     val targetName: String,
     val special: String,
@@ -35,7 +36,7 @@ class StarTargets @Inject constructor(@ApplicationContext val context: Context) 
     val decNum = dec.substringBefore(",").toDouble()
 
     companion object {
-      fun fromString(str: String): Target {
+      fun fromString(starIndex: Int, str: String): Target {
         val target = str.substringAfter("target").substringBefore("=").trim()
         val data = str.substringAfter("{").substringBefore("}")
         val targetName = data.substringBefore(",").trim().removePrefix("\"").removeSuffix("\"")
@@ -51,7 +52,7 @@ class StarTargets @Inject constructor(@ApplicationContext val context: Context) 
           dec = "0"
         }
 
-        return Target(target, targetName, special, ra, dec)
+        return Target(starIndex = starIndex, target = target, targetName = targetName, special = special, ra = ra, dec = dec)
       }
     }
   }

@@ -45,6 +45,11 @@ class BluetoothCommunication @Inject constructor(
 
   private var localArduinoSlaveMode = false
 
+  override val arduinoLightsOn: Boolean
+    get() = this.localArduinoLightsOn
+
+  private var localArduinoLightsOn = true
+
   //
   // Thread responsible for reading the arduino data
   private val readThread = ReadThread().apply { start() }
@@ -63,6 +68,10 @@ class BluetoothCommunication @Inject constructor(
 
   // region Commands
   //
+  override fun sendMenuMain() {
+    Log.d(TAG, "Sending menu main")
+    ArduinoCommand.SendMenuMain.send(this)
+  }
 
   override fun sendTime() {
     Log.d(TAG, "Sending current time")
@@ -81,14 +90,26 @@ class BluetoothCommunication @Inject constructor(
     this.localArduinoSlaveMode = false
   }
 
+  override fun sendLightsOn() {
+    Log.d(TAG, "Sending lights on")
+    ArduinoCommand.LightsOn.send(this)
+    this.localArduinoLightsOn = true
+  }
+
+  override fun sendLightsOff() {
+    Log.d(TAG, "Sending lights off")
+    ArduinoCommand.LightsOff.send(this)
+    this.localArduinoLightsOn = false
+  }
+
   override fun sendStartCalibrating(index: Int, starTarget: StarTargets.Target) {
     Log.d(TAG, "Sending start calibrating ($index, target: $starTarget)")
     ArduinoCommand.StartCalibrating(index, starTarget).send(this)
   }
 
-  override fun sendCalibratingMoveSpeed(x: Int, y: Int) {
+  override fun sendCalibratingMoveSpeed(x: Int, y: Int, speed: Float) {
     Log.d(TAG, "Sending move speed ($x, $y)")
-    ArduinoCommand.CalibratingMoveSpeed(x, y).send(this)
+    ArduinoCommand.CalibratingMoveSpeed(x, y, speed.toInt()).send(this)
   }
 
   override fun sendCalibratingMoveStop() {

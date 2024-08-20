@@ -21,9 +21,14 @@ class ArduinoJsonProcessor @Inject constructor(applicationState: ApplicationStat
     Log.d(TAG, "Processing object: $jsonObject")
 
     arduinoState.ra = jsonObject.getDouble("ra")
-    arduinoState.azm = jsonObject.getDouble("azm")
     arduinoState.dec = jsonObject.getDouble("dec")
+    arduinoState.lastStarRa = jsonObject.getDouble("last-star-ra")
+    arduinoState.lastStarDec = jsonObject.getDouble("last-star-dec")
+    arduinoState.azm = jsonObject.getDouble("azm")
     arduinoState.alt = jsonObject.getDouble("alt")
-    arduinoState.calibrated = jsonObject.getInt("calibrated")
+    arduinoState.currentMotorAzm = jsonObject.getDouble("c-m-azm")
+    arduinoState.currentMotorAlt = jsonObject.getDouble("c-m-alt")
+    arduinoState.calibrated = jsonObject.getInt("calibrated") != 0
+    arduinoState.activeMode = ArduinoMode.lookupValue(jsonObject.getInt("activeMode"))
   }
 }
