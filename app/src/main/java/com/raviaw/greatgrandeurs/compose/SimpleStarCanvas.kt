@@ -44,19 +44,8 @@ fun SimpleStarCanvas(target: StarTargets.Target, height: Dp, color: Color) {
 }
 
 private fun DrawScope.drawCoordinates(target: StarTargets.Target, color: Color) {
-  try {
-    val canvasQuadrantSize = size
-    drawRect(
-      color = Color.Black,
-      size = canvasQuadrantSize
-    )
-    val raLine = mapDouble(target.raNum, 0.0, 24.0, 0.0, size.width * 1.0).toFloat()
-    drawLine(color, Offset(raLine, 0.0f), Offset(raLine, size.height))
-    val decLine = mapDouble(target.decNum, -90.0, +90.0, 0.0, size.height * 1.0).toFloat()
-    drawLine(color, Offset(0.0f, decLine), Offset(size.width, decLine))
-  } catch (ex: Exception) {
-    Log.d(TAG, "Failed to draw", ex)
-  }
+  prepareArea()
+  drawTargetCoordinates(target, color)
 }
 
 @SuppressLint("MissingPermission")

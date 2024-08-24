@@ -12,15 +12,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.InputStreamReader
 import javax.inject.Inject
 
-class StarTargets @Inject constructor(@ApplicationContext val context: Context) {
-  val targets: List<Target>
-
-  init {
-    val lines = InputStreamReader(context.resources.openRawResource(R.raw.stars)).use {
-      it.readLines()
-    }
-    targets = lines.withIndex().map { Target.fromString(starIndex = it.index, str = it.value) }
-  }
+class StarTargets constructor(val targets: List<Target>) {
+  @Inject
+  constructor(@ApplicationContext context: Context) : this(readTargetsFromContext(context))
 
   class Target(
     val starIndex: Int,
@@ -54,6 +48,15 @@ class StarTargets @Inject constructor(@ApplicationContext val context: Context) 
 
         return Target(starIndex = starIndex, target = target, targetName = targetName, special = special, ra = ra, dec = dec)
       }
+    }
+  }
+
+  companion object {
+    private fun readTargetsFromContext(context: Context): List<Target> {
+      val lines = InputStreamReader(context.resources.openRawResource(R.raw.stars)).use {
+        it.readLines()
+      }
+      return lines.withIndex().map { Target.fromString(starIndex = it.index, str = it.value) }
     }
   }
 }

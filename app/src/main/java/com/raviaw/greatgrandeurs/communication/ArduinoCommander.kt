@@ -17,6 +17,7 @@ interface ArduinoCommander {
   fun sendArduinoFreeMode() {}
   fun sendLightsOn() {}
   fun sendLightsOff() {}
+  fun sendFindStar(index: Int, starTarget: StarTargets.Target) {}
   fun sendStartCalibrating(index: Int, starTarget: StarTargets.Target) {}
   fun sendCalibratingMoveSpeed(x: Int, y: Int, speed: Float) {}
   fun sendCalibratingMoveStop() {}

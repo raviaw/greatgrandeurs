@@ -125,8 +125,7 @@ fun HomeScreen(
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
         content = { Text("Calibrate") },
-        //enabled = bluetoothConnected,
-        enabled = true,
+        enabled = bluetoothConnected,
         modifier = textModifier.weight(1.0f),
         onClick = { onCalibrate() }
       )

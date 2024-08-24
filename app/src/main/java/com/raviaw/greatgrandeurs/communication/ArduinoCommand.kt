@@ -139,4 +139,16 @@ sealed class ArduinoCommand() {
       sendJsonObject(bluetoothCommunication, jsonObject)
     }
   }
+
+  class FindStar(private val index: Int, private val starTarget: StarTargets.Target) : ArduinoCommand() {
+    override val commandName = "find-star"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      jsonObject.put("index", index)
+      jsonObject.put("starIndex", starTarget.starIndex)
+      jsonObject.put("target", starTarget.targetName)
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
 }

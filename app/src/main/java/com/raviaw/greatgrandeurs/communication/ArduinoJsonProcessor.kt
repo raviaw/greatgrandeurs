@@ -30,5 +30,7 @@ class ArduinoJsonProcessor @Inject constructor(applicationState: ApplicationStat
     arduinoState.currentMotorAlt = jsonObject.getDouble("c-m-alt")
     arduinoState.calibrated = jsonObject.getInt("calibrated") != 0
     arduinoState.activeMode = ArduinoMode.lookupValue(jsonObject.getInt("activeMode"))
+    arduinoState.horizontalMotorPosition = jsonObject.getLong("hor-motor")
+    arduinoState.verticalMotorPosition = jsonObject.getLong("ver-motor")
   }
 }

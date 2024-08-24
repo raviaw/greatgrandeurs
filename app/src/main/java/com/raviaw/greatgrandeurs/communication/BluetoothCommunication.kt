@@ -127,7 +127,11 @@ class BluetoothCommunication @Inject constructor(
     ArduinoCommand.CalibrationCompleted.send(this)
   }
 
-  //
+  override fun sendFindStar(index: Int, starTarget: StarTargets.Target) {
+    Log.d(TAG, "Sending find star ($index, target: $starTarget)")
+    ArduinoCommand.FindStar(index, starTarget).send(this)
+  }
+//
   // endregion
 
   fun writeToCurrentDevice(bytes: ByteArray) {

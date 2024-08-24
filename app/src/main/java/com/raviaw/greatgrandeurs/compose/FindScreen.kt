@@ -42,19 +42,18 @@ import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.communication.ArduinoCommander
 import com.raviaw.greatgrandeurs.standardPadding
-import com.raviaw.greatgrandeurs.state.CalibrationState
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun CalibrationScreen(
+fun FindScreen(
   modifier: Modifier = Modifier,
-  calibrationState: CalibrationState,
+  applicationState: ApplicationState,
   starTargets: StarTargets,
   arduinoCommander: ArduinoCommander,
-  onMoveControlsDialog: () -> Unit,
   onBackClick: () -> Unit
 ) {
   val textColumnModifier = Modifier.fillMaxWidth()
@@ -65,23 +64,16 @@ fun CalibrationScreen(
 
   var starCanvasTargets by remember { mutableStateOf<List<StarCanvasTarget>>(emptyList()) }
 
-  var starTarget1 by remember { mutableStateOf<StarTargets.Target?>(null) }
-  var starTarget2 by remember { mutableStateOf<StarTargets.Target?>(null) }
-
-  var slaveSent by remember { mutableStateOf(false) }
+  var findStar by remember { mutableStateOf<StarTargets.Target?>(null) }
 
   LaunchedEffect(Unit) {
     while (true) {
       val localCanvasTargets = mutableListOf<StarCanvasTarget>()
 
-      calibrationState.firstStarTarget?.let {
+      applicationState.findStar?.let {
         localCanvasTargets.add(StarCanvasTarget(it.targetName, Color.Yellow, it))
       }
-      calibrationState.secondStarTarget?.let {
-        localCanvasTargets.add(StarCanvasTarget(it.targetName, Color.Cyan, it))
-      }
-      starTarget1 = calibrationState.firstStarTarget
-      starTarget2 = calibrationState.secondStarTarget
+      findStar = applicationState.findStar
 
       starCanvasTargets = localCanvasTargets
 
@@ -110,79 +102,32 @@ fun CalibrationScreen(
     horizontalAlignment = Alignment.Start,
     verticalArrangement = Arrangement.Top
   ) {
-    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineMedium, text = "Calibration")
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineMedium, text = "Find")
     VerticalSpacer()
-    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "First Star")
+    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Star/ Celestial Body")
     StarPicker(
       rowModifier = rowModifier,
       textColumnModifier = textColumnModifier,
       starTargets = starTargets,
-      color = Color.Yellow,
-      thisTarget = { calibrationState.firstStarTarget },
-      otherTarget = { calibrationState.secondStarTarget },
-      otherTargetColor = Color.Cyan
-    ) { calibrationState.firstStarTarget = it }
-    VerticalSpacer()
-    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Second Star")
-    StarPicker(
-      rowModifier = rowModifier,
-      textColumnModifier = textColumnModifier,
-      starTargets = starTargets,
-      color = Color.Cyan,
-      thisTarget = { calibrationState.secondStarTarget },
-      otherTarget = { calibrationState.firstStarTarget },
-      otherTargetColor = Color.Yellow
-    ) { calibrationState.secondStarTarget = it }
-    VerticalSpacer()
-    StarCanvas(modifier = Modifier.standardPadding(), targets = starCanvasTargets)
-    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Calibrate")
-    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-      Button(
-        content = { if (starTarget1 != null) Text("Find ${starTarget1!!.targetName}") else Text("Waiting...") },
-        //enabled = bluetoothConnected,
-        enabled = starTarget1 != null,
-        modifier = textModifier.weight(1.0f),
-        onClick = { onStarTarget1(calibrationState, arduinoCommander, onMoveControlsDialog) }
-      )
-      HorizontalSpacer()
-      Button(
-        content = { if (starTarget2 != null) Text("Find ${starTarget2!!.targetName}") else Text("Waiting...") },
-        enabled = starTarget2 != null,
-        modifier = textModifier.weight(1.0f),
-        onClick = { onStarTarget2(calibrationState, arduinoCommander, onMoveControlsDialog) }
-      )
-    }
+      thisTarget = { findStar }
+    ) { applicationState.findStar = it }
     VerticalSpacer()
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
-        content = { Text("Complete Calibration Process") },
+        content = { Text("Find Star") },
         //enabled = bluetoothConnected,
-        enabled = starTarget1 != null && starTarget2 != null,
+        enabled = findStar != null,
         modifier = textModifier.weight(1.0f),
-        onClick = { onCalibrationComplete(calibrationState, arduinoCommander, onBackClick) }
+        onClick = { onStarFound(applicationState, arduinoCommander, onBackClick) }
       )
     }
   }
 }
 
-private fun onStarTarget1(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, navigateToMoveControls: () -> Unit) {
-  calibrationState.currentCalibrating = calibrationState.firstStarTarget
-  if (calibrationState.currentCalibrating != null) {
-    arduinoCommander.sendStartCalibrating(0, calibrationState.currentCalibrating!!)
-    navigateToMoveControls()
+private fun onStarFound(applicationState: ApplicationState, arduinoCommander: ArduinoCommander, onBackClick: () -> Unit) {
+  applicationState.findStar?.let {
+    arduinoCommander.sendFindStar(index = it.starIndex, starTarget = it)
   }
-}
-
-private fun onStarTarget2(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, navigateToMoveControls: () -> Unit) {
-  calibrationState.currentCalibrating = calibrationState.secondStarTarget
-  if (calibrationState.currentCalibrating != null) {
-    arduinoCommander.sendStartCalibrating(1, calibrationState.currentCalibrating!!)
-    navigateToMoveControls()
-  }
-}
-
-private fun onCalibrationComplete(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, onBackClick: () -> Unit) {
-  arduinoCommander.sendCalibrationCompleted()
   onBackClick()
 }
 
@@ -191,10 +136,7 @@ private fun StarPicker(
   rowModifier: Modifier,
   textColumnModifier: Modifier,
   starTargets: StarTargets,
-  color: Color,
   thisTarget: () -> StarTargets.Target?,
-  otherTarget: () -> StarTargets.Target?,
-  otherTargetColor: Color,
   onStarSelected: (StarTargets.Target) -> Unit,
 ) {
   var starExpanded by remember { mutableStateOf(false) }
@@ -220,10 +162,8 @@ private fun StarPicker(
       modifier = textColumnModifier.weight(0.6f)
     ) {
       starTargets.targets.map {
-        val otherTargetResolved = otherTarget()
-        val otherStar = it == otherTargetResolved
         DropdownMenuItem(modifier = Modifier.fillMaxWidth(),
-          enabled = !otherStar,
+          enabled = true,
           text = {
             Column {
               Row(modifier = Modifier.fillMaxWidth()) {
@@ -234,7 +174,7 @@ private fun StarPicker(
               SimpleStarCanvas(
                 target = it,
                 height = 40.dp,
-                color = if (otherStar) otherTargetColor else color
+                color = Color.Blue
               )
             }
           },
@@ -251,21 +191,18 @@ private fun StarPicker(
 @SuppressLint("MissingPermission")
 @Preview(showBackground = true, name = "Standard page")
 @Composable
-fun CalibrationScreenPreview() {
+fun FindScreenPreview() {
   GreatGrandeursTheme {
-
-    val calibrationState = CalibrationState()
-    CalibrationScreen(
+    FindScreen(
       modifier = Modifier,
       onBackClick = {},
-      calibrationState = calibrationState,
-      starTargets = StarTargets(listOf(StarTargets.Target(1, "Test", "Test", "", "1", "4"))),
+      starTargets = StarTargets(listOf(StarTargets.Target(1, "Test", "Test", "", "10", "20"))),
+      applicationState = ApplicationState(),
       arduinoCommander = object : ArduinoCommander {
         override val connected: Boolean = true
         override val arduinoSlaveMode: Boolean = true
         override val arduinoLightsOn: Boolean = true
-      },
-      onMoveControlsDialog = {}
+      }
     )
   }
 }

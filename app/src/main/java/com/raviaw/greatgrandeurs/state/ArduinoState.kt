@@ -19,4 +19,6 @@ class ArduinoState constructor() {
   var azm: Double = 180.0
   var currentMotorAlt: Double = 0.0
   var currentMotorAzm: Double = 180.0
+  var horizontalMotorPosition: Long = 0L
+  var verticalMotorPosition: Long = 0L
 }

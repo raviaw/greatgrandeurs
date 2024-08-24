@@ -51,13 +51,4 @@ sealed class Screen(
   data object MoveControls : Screen(route = "moveControls") {
     fun createRoute() = "moveControls"
   }
-//    data object Gallery : Screen(
-//        route = "gallery/{plantName}",
-//        navArguments = listOf(navArgument("plantName") {
-//            type = NavType.StringType
-//        })
-//    ) {
-//        fun createRoute(plantName: String) = "gallery/${plantName}"
-//
-//    }
 }

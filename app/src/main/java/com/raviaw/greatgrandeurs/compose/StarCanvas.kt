@@ -6,6 +6,7 @@
 //
 package com.raviaw.greatgrandeurs.compose
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
@@ -13,18 +14,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.raviaw.greatgrandeurs.TAG
-import com.raviaw.greatgrandeurs.mapDouble
 import com.raviaw.greatgrandeurs.tracking.StarTargets
+import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 
 @Composable
 fun StarCanvas(modifier: Modifier, targets: List<StarCanvasTarget>) {
@@ -39,36 +37,15 @@ fun StarCanvas(modifier: Modifier, targets: List<StarCanvasTarget>) {
 
 private fun DrawScope.drawCoordinates(targets: List<StarCanvasTarget>, textMeasurer: TextMeasurer) {
   try {
-    val canvasQuadrantSize = size
-    drawRect(
-      color = Color.Black,
-      size = canvasQuadrantSize
-    )
+    prepareArea()
     for (starTarget in targets) {
-      val raLine = mapDouble(starTarget.starTarget.raNum, 0.0, 24.0, 0.0, size.width * 1.0).toFloat()
-      drawLine(starTarget.targetColor, Offset(raLine, 0.0f), Offset(raLine, size.height))
-      drawText(
+      drawRaDecCoordinates(
+        ra = starTarget.starTarget.raNum,
+        dec = starTarget.starTarget.decNum,
+        targetName = starTarget.targetName,
+        includeCaption = true,
         textMeasurer = textMeasurer,
-        text = "${starTarget.targetName} RA: " + starTarget.starTarget.raShort,
-        style = TextStyle(
-          fontSize = 6.sp,
-          color = starTarget.targetColor,
-          background = Color.Black
-        ),
-        topLeft = Offset(raLine, 0.0f).plus(Offset(5f, 0.0f))
-      )
-
-      val decLine = mapDouble(starTarget.starTarget.decNum, -90.0, +90.0, 0.0, size.height * 1.0).toFloat()
-      drawLine(starTarget.targetColor, Offset(0.0f, decLine), Offset(size.width, decLine))
-      drawText(
-        textMeasurer = textMeasurer,
-        text = "${starTarget.targetName} DEC: " + starTarget.starTarget.decShort,
-        style = TextStyle(
-          fontSize = 6.sp,
-          color = starTarget.targetColor,
-          background = Color.Black
-        ),
-        topLeft = Offset(0.0f, decLine).plus(Offset(5f, 5f))
+        color = starTarget.targetColor
       )
     }
   } catch (ex: Exception) {
@@ -77,3 +54,18 @@ private fun DrawScope.drawCoordinates(targets: List<StarCanvasTarget>, textMeasu
 }
 
 class StarCanvasTarget(val targetName: String, val targetColor: Color, val starTarget: StarTargets.Target)
+
+@SuppressLint("MissingPermission")
+@Preview(showBackground = true, name = "Standard page")
+@Composable
+fun StarCanvasPreview() {
+  GreatGrandeursTheme {
+    StarCanvas(
+      modifier = Modifier,
+      targets = listOf(
+        StarCanvasTarget(targetName = "Test 1", targetColor = Color.Cyan, starTarget = StarTargets.Target(1, "Test 1", "Test 1", "", "15", "15")),
+        StarCanvasTarget(targetName = "Test 2", targetColor = Color.Red, starTarget = StarTargets.Target(2, "Test 2", "Test 2", "", "20", "12"))
+      )
+    )
+  }
+}
