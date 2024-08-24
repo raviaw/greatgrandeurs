@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,12 +35,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.communication.ArduinoCommander
 import com.raviaw.greatgrandeurs.mapFloat
 import com.raviaw.greatgrandeurs.mapInt
 import com.raviaw.greatgrandeurs.standardPadding
+import com.raviaw.greatgrandeurs.state.ArduinoState
 import com.raviaw.greatgrandeurs.state.CalibrationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
@@ -49,9 +50,6 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
-private val midway = 8
-private val numberOfLines = midway * 2 + 2
-private val boxSize = (midway * 2 + 1).toFloat()
 private const val maxRed = 120
 private const val maxGreen = 50
 private const val maxBlue = 50
@@ -67,10 +65,13 @@ private val colorMap = (1..midway).associateWith { index ->
 fun MoveControlsScreen(
   modifier: Modifier = Modifier,
   calibrationState: CalibrationState,
+  arduinoState: ArduinoState,
   arduinoCommander: ArduinoCommander,
   onDismiss: () -> Unit
 ) {
-  val textColumnModifier = Modifier.fillMaxWidth()
+  val textColumnModifier = Modifier
+    .fillMaxWidth()
+    .standardPadding()
   val textModifier = Modifier
     .fillMaxWidth(0.4f)
 
@@ -81,7 +82,10 @@ fun MoveControlsScreen(
   var layoutSize by remember { mutableStateOf<Size?>(null) }
   var activePoint by remember { mutableStateOf(Point(midway, midway)) }
   var boxInput by remember { mutableStateOf<BoxInput?>(null) }
-  var speed by remember { mutableFloatStateOf(50f) }
+  var speed by remember { mutableFloatStateOf(5f) }
+
+  var horizontalMotorPosition by remember { mutableLongStateOf(0) }
+  var verticalMotorPosition by remember { mutableLongStateOf(0) }
 
   var horizontalCommand by remember { mutableStateOf("Stopped") }
   var verticalCommand by remember { mutableStateOf("Stopped") }
@@ -93,6 +97,8 @@ fun MoveControlsScreen(
   LaunchedEffect(Unit) {
     while (true) {
       calibrateStarTarget = calibrationState.currentCalibrating
+      horizontalMotorPosition = arduinoState.horizontalMotorPosition
+      verticalMotorPosition = arduinoState.verticalMotorPosition
 
       //
       delay(500.milliseconds)
@@ -155,9 +161,7 @@ fun MoveControlsScreen(
     //
     // Sends the command
     // All parameters are between -100..100
-    val sendHorizontalSpeed = mapInt(horizontalSpeed, -midway, midway, -100, 100)
-    val sendVerticalSpeed = mapInt(verticalSpeed, -midway, midway, -100, 100)
-    arduinoCommander.sendCalibratingMoveSpeed(sendHorizontalSpeed, sendVerticalSpeed, speed)
+    arduinoCommander.sendCalibratingMoveSpeed(horizontalSpeed, verticalSpeed, speed)
   }
 
   val onDismissRequest: () -> Unit = {
@@ -180,58 +184,29 @@ fun MoveControlsScreen(
     horizontalAlignment = Alignment.Start,
     verticalArrangement = Arrangement.Top
   ) {
-    Text(modifier = rowModifier, style = MaterialTheme.typography.headlineMedium, text = "Calibration")
     Text(
       modifier = rowModifier,
-      style = MaterialTheme.typography.headlineSmall,
-      text = if (calibrateStarTarget == null) "Waiting" else "Find ${calibrateStarTarget!!.targetName}"
+      style = MaterialTheme.typography.headlineMedium,
+      text = "Calibration/ ${if (calibrateStarTarget == null) "Waiting" else "Find ${calibrateStarTarget!!.targetName}"}"
     )
     if (calibrateStarTarget != null) {
       Text(modifier = rowModifier, text = "Star position:")
       SimpleStarCanvas(target = calibrateStarTarget!!, height = 40.dp, color = Color.White)
     }
-    VerticalSpacer()
-    Text(modifier = rowModifier, text = "Speed/ move:")
-    MoveGridCanvas(
-      boxSize = boxSize,
-      numberOfLines = numberOfLines,
+    MoveGridControl(
       layoutSize = layoutSize,
+      horizontalCommand = horizontalCommand,
+      verticalCommand = verticalCommand,
+      horizontalMotorPosition = horizontalMotorPosition,
+      verticalMotorPosition = verticalMotorPosition,
       activePoint = activePoint,
       activeColor = activeColor,
       speed = speed,
-      onBoxInput = { boxInput = it },
+      onActivePointChange = { activePoint = it },
       onSpeedChange = { speed = it },
-      onGlobalPositioned = { layoutSize = it.size.toSize() })
-    VerticalSpacer()
-    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-      Button(
-        content = {
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("H: $horizontalCommand")
-            Text("Click to stop")
-          }
-        },
-        modifier = textModifier
-          .weight(1.0f),
-        onClick = {
-          activePoint = activePoint.copy(x = midway)
-        }
-      )
-      HorizontalSpacer()
-      Button(
-        content = {
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("V: $verticalCommand")
-            Text("Click to stop")
-          }
-        },
-        modifier = textModifier
-          .weight(1.0f),
-        onClick = {
-          activePoint = activePoint.copy(y = midway)
-        }
-      )
-    }
+      onBoxInput = { boxInput = it },
+      onGlobalPositioned = { layoutSize = it.size.toSize() }
+    )
     VerticalSpacer()
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
@@ -274,6 +249,7 @@ fun MoveControlsDialogPreview() {
         override val arduinoSlaveMode: Boolean = false
         override val arduinoLightsOn: Boolean = true
       },
+      arduinoState = ArduinoState(),
       onDismiss = {}
     )
   }

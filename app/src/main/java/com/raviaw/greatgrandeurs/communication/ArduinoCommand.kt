@@ -97,9 +97,10 @@ sealed class ArduinoCommand() {
 
     override fun send(bluetoothCommunication: BluetoothCommunication) {
       val jsonObject = startJsonObject()
-      val multiplier = speed / 100.0
-      jsonObject.put("x", (x * multiplier).toInt())
-      jsonObject.put("y", (y * multiplier).toInt())
+      val multiplier = speed
+      jsonObject.put("x", (x * multiplier))
+      jsonObject.put("y", (y * multiplier))
+      jsonObject.put("speed", speed)
       sendJsonObject(bluetoothCommunication, jsonObject)
     }
   }

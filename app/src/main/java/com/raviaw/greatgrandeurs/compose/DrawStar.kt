@@ -120,7 +120,8 @@ fun DrawScope.drawInGrid(
     )
   }
 
-  drawLine(color, Offset(0.0f, horizontalLine), Offset(size.width, horizontalLine))
+  val useHorizontalLine = size.height - horizontalLine
+  drawLine(color, Offset(0.0f, useHorizontalLine), Offset(size.width, useHorizontalLine))
   if (useTextMeasurer != null && horizontalCaption != null) {
     drawText(
       textMeasurer = useTextMeasurer,
@@ -130,7 +131,7 @@ fun DrawScope.drawInGrid(
         color = color,
         background = Color.Black
       ),
-      topLeft = Offset(0.0f, horizontalLine).plus(Offset(5f, 5f))
+      topLeft = Offset(0.0f, useHorizontalLine).plus(Offset(5f, 5f))
     )
   }
 }

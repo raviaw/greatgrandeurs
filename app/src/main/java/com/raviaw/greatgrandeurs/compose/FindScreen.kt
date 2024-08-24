@@ -82,16 +82,6 @@ fun FindScreen(
     }
   }
 
-//  LaunchedEffect(Unit) {
-//    while (true) {
-//      if (!slaveSent) {
-//        arduinoCommander.sendArduinoSlaveMode()
-//        slaveSent = true
-//      }
-//      delay(1.seconds)
-//    }
-//  }
-//
   Column(
     modifier = modifier
       .statusBarsPadding()

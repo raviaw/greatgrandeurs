@@ -114,6 +114,7 @@ fun GreatGrandeursNavHost(
       MoveControlsScreen(
         calibrationState = applicationState.calibrationState,
         arduinoCommander = bluetoothCommunication,
+        arduinoState = applicationState.arduinoState,
         onDismiss = { navController.navigateUp() })
     }
     composable(
