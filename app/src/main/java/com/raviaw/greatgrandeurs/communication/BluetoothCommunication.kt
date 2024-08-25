@@ -85,7 +85,7 @@ class BluetoothCommunication @Inject constructor(
   }
 
   override fun sendArduinoFreeMode() {
-    Log.d(TAG, "Sending mater mode")
+    Log.d(TAG, "Sending free mode")
     ArduinoCommand.MasterMode.send(this)
     this.localArduinoSlaveMode = false
   }
@@ -131,7 +131,27 @@ class BluetoothCommunication @Inject constructor(
     Log.d(TAG, "Sending find star ($index, target: $starTarget)")
     ArduinoCommand.FindStar(index, starTarget).send(this)
   }
-//
+
+  override fun sendGo(raHours: Int, raMinutes: Int, raSeconds: Float, decHours: Int, decMinutes: Int, decSeconds: Float) {
+    Log.d(TAG, "Sending go ($raHours, $raMinutes, $raSeconds, $decHours, $decMinutes, $decSeconds)")
+    ArduinoCommand.Go(raHours, raMinutes, raSeconds, decHours, decMinutes, decSeconds).send(this)
+  }
+
+  override fun sendPrepareToMove() {
+    Log.d(TAG, "Sending prepare to move")
+    ArduinoCommand.PrepareToMove.send(this)
+  }
+
+  override fun sendMoveSpeed(x: Int, y: Int, speed: Float) {
+    Log.d(TAG, "Sending move speed")
+    ArduinoCommand.MoveSpeed(x, y, speed).send(this)
+  }
+
+  override fun sendMoveCompleted() {
+    Log.d(TAG, "Sending prepare to move")
+    ArduinoCommand.MoveCompleted.send(this)
+  }
+  //
   // endregion
 
   fun writeToCurrentDevice(bytes: ByteArray) {

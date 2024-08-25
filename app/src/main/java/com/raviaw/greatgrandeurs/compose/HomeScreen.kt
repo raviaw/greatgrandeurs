@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -31,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.StandardPadding
 import com.raviaw.greatgrandeurs.VerticalSpacer
@@ -38,6 +41,7 @@ import com.raviaw.greatgrandeurs.communication.ArduinoMode
 import com.raviaw.greatgrandeurs.formatCoordinate
 import com.raviaw.greatgrandeurs.standardPadding
 import com.raviaw.greatgrandeurs.state.ApplicationState
+import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -52,22 +56,15 @@ fun HomeScreen(
   onBluetooth: () -> Unit,
   onSettings: () -> Unit,
 ) {
-  var rightAscension by remember { mutableDoubleStateOf(0.0) }
-  var declination by remember { mutableDoubleStateOf(0.0) }
-  var altitude by remember { mutableDoubleStateOf(0.0) }
-  var azimuth by remember { mutableDoubleStateOf(0.0) }
-  var horizontalMotorPosition by remember { mutableLongStateOf(0) }
-  var verticalMotorPosition by remember { mutableLongStateOf(0) }
-
   var selectedDeviceName by remember { mutableStateOf("No device") }
   var bluetoothConnected by remember { mutableStateOf(false) }
-
-  var activeMode by remember { mutableStateOf(ArduinoMode.MODE_MENU) }
-  var calibrated by remember { mutableStateOf(false) }
 
   val textColumnModifier = Modifier
     .fillMaxWidth()
     .padding(StandardPadding)
+  val shortColumnModifier = Modifier
+    .fillMaxWidth()
+    .padding(horizontal = StandardPadding, vertical = 0.dp)
   val textModifier = Modifier
     .fillMaxWidth(0.4f)
   val basePadding = Modifier.padding(StandardPadding)
@@ -76,15 +73,6 @@ fun HomeScreen(
     while (true) {
       selectedDeviceName = applicationState.bluetoothState.selectedDevice?.name ?: "No device"
       bluetoothConnected = applicationState.bluetoothState.bluetoothConnection != null
-
-      rightAscension = applicationState.arduinoState.ra
-      declination = applicationState.arduinoState.dec
-      altitude = applicationState.arduinoState.alt
-      azimuth = applicationState.arduinoState.azm
-      horizontalMotorPosition = applicationState.arduinoState.horizontalMotorPosition
-      verticalMotorPosition = applicationState.arduinoState.verticalMotorPosition
-      activeMode = applicationState.arduinoState.activeMode
-      calibrated = applicationState.arduinoState.calibrated
 
       delay(500.milliseconds)
     }
@@ -101,69 +89,8 @@ fun HomeScreen(
     verticalArrangement = Arrangement.Top
   ) {
     Text(modifier = basePadding, style = MaterialTheme.typography.headlineMedium, text = "Great Grandeurs")
-    Text(modifier = basePadding, style = MaterialTheme.typography.headlineSmall, text = "Positioning")
-    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = rightAscension.formatCoordinate(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("RA") })
-      HorizontalSpacer()
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = declination.formatCoordinate(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("DEC") })
-      HorizontalSpacer()
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = altitude.formatCoordinate(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("ALT") })
-      HorizontalSpacer()
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = azimuth.formatCoordinate(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("AZM") })
-    }
-    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = horizontalMotorPosition.toString(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("Motor H") })
-      HorizontalSpacer()
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = verticalMotorPosition.toString(),
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("Motor V") })
-    }
+    FullArduinoStatus(applicationState = applicationState)
     VerticalSpacer()
-    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = activeMode.name.substringAfter("MODE_").replace("_", " ").lowercase().replaceFirstChar { it.uppercaseChar() },
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("Mode") })
-      HorizontalSpacer()
-      OutlinedTextField(
-        modifier = textModifier.weight(1.0f),
-        value = if (calibrated) "Yes" else "No",
-        onValueChange = {},
-        readOnly = true,
-        label = { Text("Calibrated") })
-    }
-    VerticalSpacer()
-    Text(modifier = basePadding, style = MaterialTheme.typography.headlineSmall, text = "Options")
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
         content = { Text("Calibrate") },
@@ -189,7 +116,7 @@ fun HomeScreen(
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
         content = { Text("Report") },
-        enabled = bluetoothConnected,
+        enabled = false,
         modifier = textModifier.weight(1.0f),
         onClick = { onReport() }
       )
@@ -208,29 +135,29 @@ fun HomeScreen(
       )
     }
     VerticalSpacer()
-    Text(modifier = basePadding, style = MaterialTheme.typography.headlineSmall, text = "Coordinates")
     Box(
       contentAlignment = Alignment.Center,
-      modifier = basePadding.fillMaxSize()
+      modifier = basePadding
+        .fillMaxSize()
+        .height(300.dp)
     ) {
       CoordinatesCanvas(arduinoState = applicationState.arduinoState)
     }
   }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun HomeScreenPreview() {
-//  GreatGrandeursTheme {
-//    HomeScreen(
-//      modifier = Modifier,
-//      applicationState = ApplicationState(),
-//      navController = navController,
-//      onCalibrate = {},
-//      onMove = {},
-//      onFind = {},
-//      onReport = {},
-//      onBluetooth = {},
-//      onSettings = {})
-//  }
-//}
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+  GreatGrandeursTheme {
+    HomeScreen(
+      modifier = Modifier,
+      applicationState = ApplicationState(),
+      onCalibrate = {},
+      onMove = {},
+      onFind = {},
+      onReport = {},
+      onBluetooth = {},
+      onSettings = {})
+  }
+}

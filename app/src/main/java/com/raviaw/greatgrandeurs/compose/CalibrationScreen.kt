@@ -47,6 +47,7 @@ import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun CalibrationScreen(
@@ -68,7 +69,7 @@ fun CalibrationScreen(
   var starTarget1 by remember { mutableStateOf<StarTargets.Target?>(null) }
   var starTarget2 by remember { mutableStateOf<StarTargets.Target?>(null) }
 
-  var slaveSent by remember { mutableStateOf(false) }
+  var calibrationComplete by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) {
     while (true) {
@@ -88,6 +89,18 @@ fun CalibrationScreen(
       //
       delay(500.milliseconds)
     }
+  }
+
+  LaunchedEffect(calibrationComplete) {
+    if (calibrationComplete) {
+      onCalibrationComplete(
+        calibrationState,
+        arduinoCommander,
+        onBackClick
+      )
+    }
+
+    calibrationComplete = false
   }
 
 //  LaunchedEffect(Unit) {
@@ -159,7 +172,7 @@ fun CalibrationScreen(
         //enabled = bluetoothConnected,
         enabled = starTarget1 != null && starTarget2 != null,
         modifier = textModifier.weight(1.0f),
-        onClick = { onCalibrationComplete(calibrationState, arduinoCommander, onBackClick) }
+        onClick = { calibrationComplete = true }
       )
     }
   }
@@ -181,8 +194,12 @@ private fun onStarTarget2(calibrationState: CalibrationState, arduinoCommander: 
   }
 }
 
-private fun onCalibrationComplete(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, onBackClick: () -> Unit) {
+private suspend fun onCalibrationComplete(calibrationState: CalibrationState, arduinoCommander: ArduinoCommander, onBackClick: () -> Unit) {
   arduinoCommander.sendCalibrationCompleted()
+  delay(1.seconds)
+  arduinoCommander.sendArduinoFreeMode()
+  arduinoCommander.sendMenuMain()
+
   onBackClick()
 }
 

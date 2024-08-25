@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -30,15 +32,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
+import com.raviaw.greatgrandeurs.StandardPadding
 import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.communication.ArduinoCommander
 import com.raviaw.greatgrandeurs.standardPadding
@@ -61,10 +68,17 @@ fun FindScreen(
     .fillMaxWidth(0.4f)
 
   val rowModifier = Modifier.standardPadding()
+  val basePadding = Modifier.padding(StandardPadding)
 
   var starCanvasTargets by remember { mutableStateOf<List<StarCanvasTarget>>(emptyList()) }
-
   var findStar by remember { mutableStateOf<StarTargets.Target?>(null) }
+
+  var findRaHours by rememberSaveable { mutableIntStateOf(0) }
+  var findRaMinutes by rememberSaveable { mutableIntStateOf(0) }
+  var findRaSeconds by rememberSaveable { mutableFloatStateOf(0F) }
+  var findDecHours by rememberSaveable { mutableIntStateOf(0) }
+  var findDecMinutes by rememberSaveable { mutableIntStateOf(0) }
+  var findDecSeconds by rememberSaveable { mutableFloatStateOf(0F) }
 
   LaunchedEffect(Unit) {
     while (true) {
@@ -101,7 +115,6 @@ fun FindScreen(
       starTargets = starTargets,
       thisTarget = { findStar }
     ) { applicationState.findStar = it }
-    VerticalSpacer()
     Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
       Button(
         content = { Text("Find Star") },
@@ -111,6 +124,72 @@ fun FindScreen(
         onClick = { onStarFound(applicationState, arduinoCommander, onBackClick) }
       )
     }
+    VerticalSpacer()
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = findRaHours.toString(),
+        onValueChange = { findRaHours = it.toInt() },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        label = { Text("RA Hours") })
+      HorizontalSpacer()
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = findRaMinutes.toString(),
+        onValueChange = { findRaMinutes = it.toInt() },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        label = { Text("RA Minutes") })
+      HorizontalSpacer()
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = findRaSeconds.toString(),
+        onValueChange = { findRaSeconds = it.toFloat() },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        label = { Text("RA Seconds") })
+    }
+    VerticalSpacer()
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = findDecHours.toString(),
+        onValueChange = { findDecHours = it.toInt() },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        label = { Text("DEC Hours") })
+      HorizontalSpacer()
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = findDecMinutes.toString(),
+        onValueChange = { findDecMinutes = it.toInt() },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        label = { Text("DEC Minutes") })
+      HorizontalSpacer()
+      OutlinedTextField(
+        modifier = textModifier.weight(1.0f),
+        value = findDecSeconds.toString(),
+        onValueChange = { findDecSeconds = it.toFloat() },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        label = { Text("DEC Seconds") })
+    }
+    VerticalSpacer()
+    Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
+      Button(
+        content = { Text("GO") },
+        //enabled = bluetoothConnected,
+        modifier = textModifier.weight(1.0f),
+        onClick = {
+          onGoButton(
+            arduinoCommander = arduinoCommander,
+            findRaHours = findRaHours,
+            findRaMinutes = findRaMinutes,
+            findRaSeconds = findRaSeconds,
+            findDecHours = findDecHours,
+            findDecMinutes = findDecMinutes,
+            findDecSeconds = findDecSeconds,
+            onBackClick = onBackClick
+          )
+        }
+      )
+    }
   }
 }
 
@@ -118,6 +197,20 @@ private fun onStarFound(applicationState: ApplicationState, arduinoCommander: Ar
   applicationState.findStar?.let {
     arduinoCommander.sendFindStar(index = it.starIndex, starTarget = it)
   }
+  onBackClick()
+}
+
+private fun onGoButton(
+  arduinoCommander: ArduinoCommander,
+  findRaHours: Int,
+  findRaMinutes: Int,
+  findRaSeconds: Float,
+  findDecHours: Int,
+  findDecMinutes: Int,
+  findDecSeconds: Float,
+  onBackClick: () -> Unit
+) {
+  arduinoCommander.sendGo(findRaHours, findRaMinutes, findRaSeconds, findDecHours, findDecMinutes, findDecSeconds)
   onBackClick()
 }
 
@@ -164,7 +257,7 @@ private fun StarPicker(
               SimpleStarCanvas(
                 target = it,
                 height = 40.dp,
-                color = Color.Blue
+                color = Color.White
               )
             }
           },

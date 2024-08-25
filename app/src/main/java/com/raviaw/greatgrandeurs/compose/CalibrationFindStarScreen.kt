@@ -40,10 +40,12 @@ import com.raviaw.greatgrandeurs.communication.ArduinoCommander
 import com.raviaw.greatgrandeurs.mapFloat
 import com.raviaw.greatgrandeurs.mapInt
 import com.raviaw.greatgrandeurs.standardPadding
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.state.ArduinoState
 import com.raviaw.greatgrandeurs.state.CalibrationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
+import com.raviaw.greatgrandeurs.withinBoundaries
 import kotlinx.coroutines.delay
 import java.text.DecimalFormat
 import kotlin.math.abs
@@ -64,8 +66,7 @@ private val colorMap = (1..midway).associateWith { index ->
 @Composable
 fun MoveControlsScreen(
   modifier: Modifier = Modifier,
-  calibrationState: CalibrationState,
-  arduinoState: ArduinoState,
+  applicationState: ApplicationState,
   arduinoCommander: ArduinoCommander,
   onDismiss: () -> Unit
 ) {
@@ -84,9 +85,6 @@ fun MoveControlsScreen(
   var boxInput by remember { mutableStateOf<BoxInput?>(null) }
   var speed by remember { mutableFloatStateOf(5f) }
 
-  var horizontalMotorPosition by remember { mutableLongStateOf(0) }
-  var verticalMotorPosition by remember { mutableLongStateOf(0) }
-
   var horizontalCommand by remember { mutableStateOf("Stopped") }
   var verticalCommand by remember { mutableStateOf("Stopped") }
 
@@ -94,11 +92,16 @@ fun MoveControlsScreen(
 
   var activeColor by remember { mutableStateOf<Color>(Color.Black) }
 
+  var lastSentHorizontalSpeed by remember { mutableIntStateOf(0) }
+  var lastSentVerticalSpeed by remember { mutableIntStateOf(0) }
+  var lastHorizontalSpeed by remember { mutableIntStateOf(0) }
+  var lastVerticalSpeed by remember { mutableIntStateOf(0) }
+  var lastSentSpeed by remember { mutableFloatStateOf(5F) }
+  var lastSpeed by remember { mutableFloatStateOf(5F) }
+
   LaunchedEffect(Unit) {
     while (true) {
-      calibrateStarTarget = calibrationState.currentCalibrating
-      horizontalMotorPosition = arduinoState.horizontalMotorPosition
-      verticalMotorPosition = arduinoState.verticalMotorPosition
+      calibrateStarTarget = applicationState.calibrationState.currentCalibrating
 
       //
       delay(500.milliseconds)
@@ -158,10 +161,24 @@ fun MoveControlsScreen(
     maxSpeed = max(abs(horizontalSpeed), abs(verticalSpeed))
     activeColor = colorMap.getOrElse(maxSpeed) { Color.Black }
 
-    //
-    // Sends the command
-    // All parameters are between -100..100
-    arduinoCommander.sendCalibratingMoveSpeed(horizontalSpeed, verticalSpeed, speed)
+    lastHorizontalSpeed = horizontalSpeed
+    lastVerticalSpeed = verticalSpeed
+    lastSpeed = speed
+  }
+
+  LaunchedEffect(Unit) {
+    while (true) {
+      //
+      // Sends the command twice per second if things are changing
+      // All parameters are between -100..100
+      if (lastSentSpeed != lastSpeed || lastSentHorizontalSpeed != lastHorizontalSpeed || lastSentVerticalSpeed != lastVerticalSpeed) {
+        arduinoCommander.sendCalibratingMoveSpeed(lastHorizontalSpeed, lastVerticalSpeed, lastSpeed)
+        lastSentSpeed = lastSpeed
+        lastSentVerticalSpeed = lastVerticalSpeed
+        lastSentHorizontalSpeed = lastHorizontalSpeed
+      }
+      delay(500.milliseconds)
+    }
   }
 
   val onDismissRequest: () -> Unit = {
@@ -193,12 +210,12 @@ fun MoveControlsScreen(
       Text(modifier = rowModifier, text = "Star position:")
       SimpleStarCanvas(target = calibrateStarTarget!!, height = 40.dp, color = Color.White)
     }
+    VerticalSpacer()
     MoveGridControl(
+      applicationState = applicationState,
       layoutSize = layoutSize,
       horizontalCommand = horizontalCommand,
       verticalCommand = verticalCommand,
-      horizontalMotorPosition = horizontalMotorPosition,
-      verticalMotorPosition = verticalMotorPosition,
       activePoint = activePoint,
       activeColor = activeColor,
       speed = speed,
@@ -218,15 +235,6 @@ fun MoveControlsScreen(
   }
 }
 
-@Suppress("SameParameterValue")
-private fun withinBoundaries(value: Int, min: Int, max: Int): Int {
-  return when {
-    value < min -> min
-    value > max -> max
-    else -> value
-  }
-}
-
 @SuppressLint("MissingPermission")
 @Preview(showBackground = true, name = "Move controls dialog")
 @Composable
@@ -234,8 +242,8 @@ fun MoveControlsDialogPreview() {
   GreatGrandeursTheme {
     MoveControlsScreen(
       modifier = Modifier,
-      calibrationState = CalibrationState().apply {
-        this.currentCalibrating = StarTargets.Target(
+      applicationState = ApplicationState().apply {
+        calibrationState.currentCalibrating = StarTargets.Target(
           starIndex = 0,
           target = "Betelgeuse",
           targetName = "Betelgeuse",
@@ -249,7 +257,6 @@ fun MoveControlsDialogPreview() {
         override val arduinoSlaveMode: Boolean = false
         override val arduinoLightsOn: Boolean = true
       },
-      arduinoState = ArduinoState(),
       onDismiss = {}
     )
   }

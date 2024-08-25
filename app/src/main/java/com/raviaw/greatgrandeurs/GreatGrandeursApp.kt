@@ -82,6 +82,8 @@ fun GreatGrandeursNavHost(
       arguments = Screen.Move.navArguments
     ) {
       MoveScreen(
+        applicationState = applicationState,
+        arduinoCommander = bluetoothCommunication,
         onBackClick = { navController.navigateUp() }
       )
     }
@@ -112,9 +114,8 @@ fun GreatGrandeursNavHost(
       arguments = Screen.Bluetooth.navArguments
     ) {
       MoveControlsScreen(
-        calibrationState = applicationState.calibrationState,
+        applicationState = applicationState,
         arduinoCommander = bluetoothCommunication,
-        arduinoState = applicationState.arduinoState,
         onDismiss = { navController.navigateUp() })
     }
     composable(

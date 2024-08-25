@@ -19,3 +19,12 @@ fun mapFloat(input: Float, inMin: Float, inMax: Float, outMin: Float, outMax: Fl
 fun mapInt(input: Int, inMin: Int, inMax: Int, outMin: Int, outMax: Int): Int {
   return (input - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 }
+
+fun withinBoundaries(value: Int, min: Int, max: Int): Int {
+  return when {
+    value < min -> min
+    value > max -> max
+    else -> value
+  }
+}
+

@@ -20,8 +20,12 @@ interface ArduinoCommander {
   fun sendFindStar(index: Int, starTarget: StarTargets.Target) {}
   fun sendStartCalibrating(index: Int, starTarget: StarTargets.Target) {}
   fun sendCalibratingMoveSpeed(x: Int, y: Int, speed: Float) {}
+  fun sendGo(raHours: Int, raMinutes: Int, raSeconds: Float, decHours: Int, decMinutes: Int, decSeconds: Float) {}
   fun sendCalibratingMoveStop() {}
   fun sendStoreCalibration() {}
   fun sendCalibrationCompleted() {}
+  fun sendPrepareToMove() {}
+  fun sendMoveSpeed(x: Int, y: Int, speed: Float) {}
+  fun sendMoveCompleted() {}
   fun sendMenuMain() {}
 }

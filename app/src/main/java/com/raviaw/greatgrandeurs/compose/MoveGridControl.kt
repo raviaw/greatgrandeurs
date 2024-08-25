@@ -23,8 +23,7 @@ import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.VerticalSpacer
 import com.raviaw.greatgrandeurs.communication.ArduinoCommander
 import com.raviaw.greatgrandeurs.standardPadding
-import com.raviaw.greatgrandeurs.state.ArduinoState
-import com.raviaw.greatgrandeurs.state.CalibrationState
+import com.raviaw.greatgrandeurs.state.ApplicationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 
@@ -38,26 +37,26 @@ fun MoveGridControl(
   layoutSize: Size?,
   horizontalCommand: String,
   verticalCommand: String,
-  horizontalMotorPosition: Long,
-  verticalMotorPosition: Long,
+  applicationState: ApplicationState,
   activePoint: Point,
   activeColor: Color,
   speed: Float,
+  showFullArduinoStatus: Boolean = false,
   onActivePointChange: (Point) -> Unit,
   onSpeedChange: (Float) -> Unit,
   onBoxInput: (BoxInput) -> Unit,
   onGlobalPositioned: (LayoutCoordinates) -> Unit
 ) {
-  val textColumnModifier = modifier
+  val textColumnModifier = Modifier
     .fillMaxWidth()
     .standardPadding()
-  val textModifier = modifier
+  val textModifier = Modifier
     .fillMaxWidth(0.4f)
 
-  Row(verticalAlignment = Alignment.Top, modifier = textColumnModifier) {
-    Text(modifier = textModifier.weight(1.0f), text = "Hor Motor: $horizontalMotorPosition")
-    HorizontalSpacer()
-    Text(modifier = textModifier.weight(1.0f), text = "Ver Motor: $verticalMotorPosition")
+  if (showFullArduinoStatus) {
+    FullArduinoStatus(applicationState = applicationState)
+  } else {
+    ArduinoMotorStatus(applicationState = applicationState)
   }
   MoveGridCanvas(
     boxSize = boxSize,
@@ -101,6 +100,7 @@ fun MoveGridControl(
     )
   }
 }
+
 @SuppressLint("MissingPermission")
 @Preview(showBackground = true, name = "Move controls dialog")
 @Composable
@@ -108,8 +108,8 @@ fun MoveGridControlPreview() {
   GreatGrandeursTheme {
     MoveControlsScreen(
       modifier = Modifier,
-      calibrationState = CalibrationState().apply {
-        this.currentCalibrating = StarTargets.Target(
+      applicationState = ApplicationState().apply {
+        calibrationState.currentCalibrating = StarTargets.Target(
           starIndex = 0,
           target = "Betelgeuse",
           targetName = "Betelgeuse",
@@ -123,7 +123,6 @@ fun MoveGridControlPreview() {
         override val arduinoSlaveMode: Boolean = false
         override val arduinoLightsOn: Boolean = true
       },
-      arduinoState = ArduinoState(),
       onDismiss = {}
     )
   }

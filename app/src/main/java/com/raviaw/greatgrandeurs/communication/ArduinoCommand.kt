@@ -152,4 +152,57 @@ sealed class ArduinoCommand() {
       sendJsonObject(bluetoothCommunication, jsonObject)
     }
   }
+
+  object PrepareToMove : ArduinoCommand() {
+    override val commandName = "move-start"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  class MoveSpeed(private val x: Int, private val y: Int, private val speed: Float) : ArduinoCommand() {
+    override val commandName = "move"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      val multiplier = speed
+      jsonObject.put("x", (x * multiplier))
+      jsonObject.put("y", (y * multiplier))
+      jsonObject.put("speed", speed)
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  object MoveCompleted : ArduinoCommand() {
+    override val commandName = "move-done"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  class Go(
+    private val raHours: Int,
+    private val raMinutes: Int,
+    private val raSeconds: Float,
+    private val decHours: Int,
+    private val decMinutes: Int,
+    private val decSeconds: Float
+  ) : ArduinoCommand() {
+    override val commandName = "go"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      jsonObject.put("ra-h", raHours)
+      jsonObject.put("ra-m", raMinutes)
+      jsonObject.put("ra-s", raSeconds)
+      jsonObject.put("dec-h", decHours)
+      jsonObject.put("dec-m", decMinutes)
+      jsonObject.put("dec-s", decSeconds)
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
 }
