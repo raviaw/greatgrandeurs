@@ -35,6 +35,9 @@ class ArduinoJsonProcessor @Inject constructor(applicationState: ApplicationStat
       arduinoState.verticalMotorPosition = jsonObject.getLong("ver-motor")
       arduinoState.horizontalEncoderPosition = jsonObject.getLong("hor-encoder")
       arduinoState.verticalEncoderPosition = jsonObject.getLong("ver-encoder")
+      arduinoState.accX = jsonObject.getDouble("acc-x")
+      arduinoState.accY = jsonObject.getDouble("acc-y")
+      arduinoState.accZ = jsonObject.getDouble("acc-z")
 
       if (arduinoState.lastStarRa < -0) {
         arduinoState.lastStarRa = 12.0

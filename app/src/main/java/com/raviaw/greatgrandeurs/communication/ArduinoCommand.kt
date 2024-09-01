@@ -80,6 +80,15 @@ sealed class ArduinoCommand() {
     }
   }
 
+  object Erase : ArduinoCommand() {
+    override val commandName = "erase"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
   class StartCalibrating(private val index: Int, private val starTarget: StarTargets.Target) : ArduinoCommand() {
     override val commandName = "c-start"
 

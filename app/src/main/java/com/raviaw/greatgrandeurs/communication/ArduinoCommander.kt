@@ -13,6 +13,7 @@ interface ArduinoCommander {
   val arduinoSlaveMode: Boolean
   val arduinoLightsOn: Boolean
   fun sendTime() {}
+  fun sendErase() {}
   fun sendArduinoSlaveMode() {}
   fun sendArduinoFreeMode() {}
   fun sendLightsOn() {}

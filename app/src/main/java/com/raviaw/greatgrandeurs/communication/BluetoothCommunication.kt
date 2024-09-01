@@ -66,6 +66,11 @@ class BluetoothCommunication @Inject constructor(
     applicationState.bluetoothState.bluetoothConnection = BluetoothConnection(arduinoJsonProcessor = arduinoJsonProcessor, device = device, socket = socket)
   }
 
+  override fun disconnectFromCurrentDevice() {
+    applicationState.bluetoothState.selectedDevice = null
+    applicationState.bluetoothState.bluetoothConnection = null
+  }
+
   // region Commands
   //
   override fun sendMenuMain() {
@@ -76,6 +81,11 @@ class BluetoothCommunication @Inject constructor(
   override fun sendTime() {
     Log.d(TAG, "Sending current time")
     ArduinoCommand.Time.send(this)
+  }
+
+  override fun sendErase() {
+    Log.d(TAG, "Sending erase")
+    ArduinoCommand.Erase.send(this)
   }
 
   override fun sendArduinoSlaveMode() {

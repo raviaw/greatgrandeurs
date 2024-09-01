@@ -9,8 +9,9 @@ package com.raviaw.greatgrandeurs.communication
 interface IBluetoothImplementation : ArduinoCommander {
   val adapterAvailable: Boolean
 
-  fun devices(): Set<FoundBluetoothDevice>?
-  fun connectToDevice(device: FoundBluetoothDevice)
+  fun devices(): Set<FoundBluetoothDevice>? = emptySet()
+  fun connectToDevice(device: FoundBluetoothDevice) {}
+  fun disconnectFromCurrentDevice() {}
 
   companion object {
     val EMPTY = object : IBluetoothImplementation {
@@ -20,10 +21,6 @@ interface IBluetoothImplementation : ArduinoCommander {
       override val arduinoLightsOn: Boolean = true
 
       override fun devices(): Set<FoundBluetoothDevice> = emptySet()
-
-      override fun connectToDevice(device: FoundBluetoothDevice) {
-        throw UnsupportedOperationException()
-      }
     }
   }
 }

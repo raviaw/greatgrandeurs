@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.StandardPadding
 import com.raviaw.greatgrandeurs.communication.ArduinoMode
-import com.raviaw.greatgrandeurs.formatCoordinate
+import com.raviaw.greatgrandeurs.formatDisplay
 import com.raviaw.greatgrandeurs.state.ApplicationState
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -51,6 +51,9 @@ fun FullArduinoStatus(modifier: Modifier = Modifier, applicationState: Applicati
   var verticalEncoderPosition by remember { mutableLongStateOf(0) }
   var activeMode by remember { mutableStateOf(ArduinoMode.MODE_MENU) }
   var calibrated by remember { mutableStateOf(false) }
+  var accX by remember { mutableDoubleStateOf(0.0) }
+  var accY by remember { mutableDoubleStateOf(0.0) }
+  var accZ by remember { mutableDoubleStateOf(0.0) }
 
   LaunchedEffect(Unit) {
     while (true) {
@@ -64,6 +67,9 @@ fun FullArduinoStatus(modifier: Modifier = Modifier, applicationState: Applicati
       verticalEncoderPosition = applicationState.arduinoState.verticalEncoderPosition
       activeMode = applicationState.arduinoState.activeMode
       calibrated = applicationState.arduinoState.calibrated
+      accX = applicationState.arduinoState.accX
+      accY = applicationState.arduinoState.accY
+      accZ = applicationState.arduinoState.accZ
 
       delay(500.milliseconds)
     }
@@ -72,22 +78,22 @@ fun FullArduinoStatus(modifier: Modifier = Modifier, applicationState: Applicati
   Row(verticalAlignment = Alignment.Top, modifier = shortColumnModifier) {
     Text(
       modifier = textModifier.weight(1.0f),
-      text = "RA: ${rightAscension.formatCoordinate()}"
+      text = "RA: ${rightAscension.formatDisplay()}"
     )
     HorizontalSpacer()
     Text(
       modifier = textModifier.weight(1.0f),
-      text = "DEC: ${declination.formatCoordinate()}"
+      text = "DEC: ${declination.formatDisplay()}"
     )
   }
   Row(verticalAlignment = Alignment.Top, modifier = shortColumnModifier) {
     Text(
       modifier = textModifier.weight(1.0f),
-      text = "ALT: ${altitude.formatCoordinate()}"
+      text = "ALT: ${altitude.formatDisplay()}"
     )
     Text(
       modifier = textModifier.weight(1.0f),
-      text = "AZM: ${azimuth.formatCoordinate()}"
+      text = "AZM: ${azimuth.formatDisplay()}"
     )
   }
   ArduinoMotorStatus(applicationState = applicationState)
@@ -98,5 +104,21 @@ fun FullArduinoStatus(modifier: Modifier = Modifier, applicationState: Applicati
     )
     HorizontalSpacer()
     Text(modifier = textModifier.weight(1.0f), text = "Calibrated: ${if (calibrated) "Yes" else "No"}")
+  }
+  Row(verticalAlignment = Alignment.Top, modifier = shortColumnModifier) {
+    Text(
+      modifier = textModifier.weight(1.0f),
+      text = "Acc X: ${accX.formatDisplay()}"
+    )
+    HorizontalSpacer()
+    Text(
+      modifier = textModifier.weight(1.0f),
+      text = "Acc Y: ${accY.formatDisplay()}"
+    )
+    HorizontalSpacer()
+    Text(
+      modifier = textModifier.weight(1.0f),
+      text = "Acc Z: ${accZ.formatDisplay()}"
+    )
   }
 }
