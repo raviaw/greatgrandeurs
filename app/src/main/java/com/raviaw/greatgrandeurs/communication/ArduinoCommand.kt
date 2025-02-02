@@ -193,6 +193,32 @@ sealed class ArduinoCommand() {
     }
   }
 
+  object MeasureBackslash : ArduinoCommand() {
+    override val commandName = "measure-backslash"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  object LaserOn : ArduinoCommand() {
+    override val commandName = "laser-on"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
+
+  object LaserOff : ArduinoCommand() {
+    override val commandName = "laser-off"
+
+    override fun send(bluetoothCommunication: BluetoothCommunication) {
+      val jsonObject = startJsonObject()
+      sendJsonObject(bluetoothCommunication, jsonObject)
+    }
+  }
   class Go(
     private val raHours: Int,
     private val raMinutes: Int,

@@ -12,6 +12,7 @@ interface ArduinoCommander {
   val connected: Boolean
   val arduinoSlaveMode: Boolean
   val arduinoLightsOn: Boolean
+  val laserOn: Boolean
   fun sendTime() {}
   fun sendErase() {}
   fun sendArduinoSlaveMode() {}
@@ -29,4 +30,7 @@ interface ArduinoCommander {
   fun sendMoveSpeed(x: Int, y: Int, speed: Float) {}
   fun sendMoveCompleted() {}
   fun sendMenuMain() {}
+  fun sendMeasureBackslash() {}
+  fun sendLaserOn() {}
+  fun sendLaserOff() {}
 }

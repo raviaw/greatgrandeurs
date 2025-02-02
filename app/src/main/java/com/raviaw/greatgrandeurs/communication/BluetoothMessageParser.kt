@@ -17,57 +17,61 @@ class BluetoothMessageParser {
   /**
    * Process the byte buffer and return the available messages
    */
-  fun processByteBuffer(byteArray: ByteArray, bytesRead: Int): List<BluetoothMessageParser.ParsedMessage> {
-    val currentMessage = ByteArray(2048)
-    if (lastPartialMessageSize != 0) {
-      lastPartialMessage.copyInto(currentMessage, 0, 0, lastPartialMessageSize)
-      byteArray.copyInto(currentMessage, lastPartialMessageSize, 0, bytesRead)
-    } else {
-      byteArray.copyInto(currentMessage, 0, 0, bytesRead)
-    }
-    val currentSize = lastPartialMessageSize + bytesRead
-    lastPartialMessageSize = 0
-
-    val messages = mutableListOf<StringBuilder>()
-    var lastMessage: StringBuilder? = null
-    var lastStart = 0
-    var lastComplete = false
-    for (pos in 0 until currentSize) {
-      val currentChar = currentMessage[pos].charValue
-      if (currentChar == '{') {
-        lastComplete = false
-        lastMessage = StringBuilder()
-        lastMessage.append(currentChar)
-        lastStart = pos
-      } else if (currentChar == '}') {
-        if (lastMessage == null) {
-          Log.w(TAG, "Got $currentChar at pos $pos but there was no message")
-        } else {
-          lastMessage.append(currentChar)
-          messages.add(lastMessage)
-          lastMessage = null
-          lastComplete = true
-        }
+  fun processByteBuffer(byteArray: ByteArray, bytesRead: Int): List<ParsedMessage> {
+    try {
+      val currentMessage = ByteArray(2048)
+      if (lastPartialMessageSize != 0) {
+        lastPartialMessage.copyInto(currentMessage, 0, 0, lastPartialMessageSize)
+        byteArray.copyInto(currentMessage, lastPartialMessageSize, 0, bytesRead)
       } else {
-        lastComplete = false
-        if (lastMessage == null) {
-          Log.w(TAG, "Got $currentChar at pos $pos but there was no message")
-        } else {
+        byteArray.copyInto(currentMessage, 0, 0, bytesRead)
+      }
+      val currentSize = lastPartialMessageSize + bytesRead
+      lastPartialMessageSize = 0
+
+      val messages = mutableListOf<StringBuilder>()
+      var lastMessage: StringBuilder? = null
+      var lastStart = 0
+      var lastComplete = false
+      for (pos in 0 until currentSize) {
+        val currentChar = currentMessage[pos].charValue
+        if (currentChar == '{') {
+          lastComplete = false
+          lastMessage = StringBuilder()
           lastMessage.append(currentChar)
+          lastStart = pos
+        } else if (currentChar == '}') {
+          if (lastMessage == null) {
+            Log.w(TAG, "Got $currentChar at pos $pos but there was no message")
+          } else {
+            lastMessage.append(currentChar)
+            messages.add(lastMessage)
+            lastMessage = null
+            lastComplete = true
+          }
+        } else {
+          lastComplete = false
+          if (lastMessage == null) {
+            Log.w(TAG, "Got $currentChar at pos $pos but there was no message")
+          } else {
+            lastMessage.append(currentChar)
+          }
         }
       }
-    }
-    if (!lastComplete) {
-      Log.d(TAG, "Processing incomplete message")
-      currentMessage.copyInto(lastPartialMessage, 0, lastStart, currentSize)
-      lastPartialMessageSize = currentSize - lastStart
-    }
+      if (!lastComplete) {
+        Log.d(TAG, "Processing incomplete message, current message: ${currentMessage}")
+        currentMessage.copyInto(lastPartialMessage, 0, lastStart, currentSize)
+        lastPartialMessageSize = currentSize - lastStart
+      }
 
-    val objects = messages.map {
-      ParsedMessage(it.toString())
+      val objects = messages.map {
+        ParsedMessage(it.toString())
+      }
+      return objects
+    } catch (ex: Exception) {
+      Log.e(TAG, "Error processing message", ex)
+      return emptyList()
     }
-
-    return objects
   }
 
   class ParsedMessage(val str: String) {

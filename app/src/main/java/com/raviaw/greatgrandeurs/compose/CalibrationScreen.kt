@@ -281,6 +281,7 @@ fun CalibrationScreenPreview() {
         override val connected: Boolean = true
         override val arduinoSlaveMode: Boolean = true
         override val arduinoLightsOn: Boolean = true
+        override val laserOn: Boolean = false
       },
       onMoveControlsDialog = {}
     )

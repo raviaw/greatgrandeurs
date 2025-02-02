@@ -47,8 +47,11 @@ class BluetoothCommunication @Inject constructor(
 
   override val arduinoLightsOn: Boolean
     get() = this.localArduinoLightsOn
+  override val laserOn: Boolean
+    get() = this.localArduinoLasersOn
 
   private var localArduinoLightsOn = true
+  private var localArduinoLasersOn = false
 
   //
   // Thread responsible for reading the arduino data
@@ -158,8 +161,25 @@ class BluetoothCommunication @Inject constructor(
   }
 
   override fun sendMoveCompleted() {
-    Log.d(TAG, "Sending prepare to move")
+    Log.d(TAG, "Sending move completed")
     ArduinoCommand.MoveCompleted.send(this)
+  }
+
+  override fun sendMeasureBackslash() {
+    Log.d(TAG, "Sending measure backslash")
+    ArduinoCommand.MeasureBackslash.send(this)
+  }
+
+  override fun sendLaserOn() {
+    Log.d(TAG, "Sending laser on")
+    ArduinoCommand.LaserOn.send(this)
+    this.localArduinoLasersOn = true
+  }
+
+  override fun sendLaserOff() {
+    Log.d(TAG, "Sending laser off")
+    ArduinoCommand.LaserOff.send(this)
+    this.localArduinoLasersOn = false
   }
   //
   // endregion

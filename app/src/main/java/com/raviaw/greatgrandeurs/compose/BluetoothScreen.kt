@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import com.raviaw.greatgrandeurs.HorizontalSpacer
 import com.raviaw.greatgrandeurs.TAG
 import com.raviaw.greatgrandeurs.VerticalSpacer
@@ -54,7 +55,7 @@ fun BluetoothScreen(
   onBackClick: () -> Unit
 ) {
   var displayMessage by remember { mutableStateOf("No error") }
-  var lastBluetoothText by remember { mutableStateOf("") }
+  var lastBluetoothText by remember { mutableStateOf("{last bluetooth message}") }
   var bluetoothTextCount by remember { mutableLongStateOf(0) }
   var selectedDeviceName by remember { mutableStateOf("No device") }
   var bluetoothConnected by remember { mutableStateOf(false) }
@@ -137,6 +138,16 @@ fun BluetoothScreen(
     }
   }
 
+  fun sendMeasureBackslash() {
+    displayMessage = "Sending measure backslash..."
+    try {
+      bluetoothCommunication.sendMeasureBackslash()
+    } catch (ex: Exception) {
+      Log.e(TAG, "Error sending measure backslash", ex)
+      displayMessage = "Error sending measure backslash: ${ex.message}"
+    }
+  }
+
   val rowModifier = Modifier.standardPadding()
 
   Column(
@@ -170,6 +181,11 @@ fun BluetoothScreen(
         VerticalSpacer()
         Text(
           text = selectedDeviceName
+        )
+        //
+        Text(text = displayMessage)
+        Text(
+          text = bluetoothTextCount.toString()
         )
       }
       HorizontalSpacer()
@@ -240,9 +256,9 @@ fun BluetoothScreen(
             modifier = Modifier.weight(0.5f),
             content = {
               if (bluetoothCommunication.arduinoLightsOn) {
-                Text("L. Off")
+                Text("Lg. Off")
               } else {
-                Text("L. On")
+                Text("Lg. On")
               }
             },
             enabled = bluetoothConnected,
@@ -265,26 +281,52 @@ fun BluetoothScreen(
             onClick = { scope.launch(Dispatchers.IO) { sendErase() } }
           )
         }
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+        ) {
+          Button(
+            content = {
+              Text("B. Slash")
+            },
+            modifier = Modifier.weight(0.5f),
+            enabled = bluetoothConnected,
+            onClick = { scope.launch(Dispatchers.IO) { sendMeasureBackslash() } }
+          )
+          HorizontalSpacer()
+          Button(
+            modifier = Modifier.weight(0.5f),
+            content = {
+              if (bluetoothCommunication.laserOn) {
+                Text("Ls. Off")
+              } else {
+                Text("Ls. On")
+              }
+            },
+            enabled = bluetoothConnected,
+            onClick = {
+              scope.launch(Dispatchers.IO) {
+                if (bluetoothCommunication.laserOn) {
+                  bluetoothCommunication.sendLaserOff()
+                } else {
+                  bluetoothCommunication.sendLaserOn()
+                }
+              }
+            })
+        }
       }
     }
 
     //
-    Text(modifier = rowModifier, text = displayMessage)
-
-    //
     Row(modifier = rowModifier) {
       Text(
-        modifier = Modifier.weight(0.2f),
-        text = bluetoothTextCount.toString()
-      )
-      Text(
+        text = lastBluetoothText,
         modifier = Modifier.weight(0.8f),
-        text = lastBluetoothText
+        fontSize = 10.sp,
       )
     }
 
 //
-    VerticalSpacer()
     Text(modifier = rowModifier, style = MaterialTheme.typography.headlineSmall, text = "Devices")
     bluetoothCommunication.devices().orEmpty().forEach { bluetoothDevice ->
       Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.standardHorizontalPadding()) {
@@ -310,6 +352,7 @@ fun BluetoothScreenPreview() {
       override val connected: Boolean = false
       override val arduinoSlaveMode: Boolean = false
       override val arduinoLightsOn: Boolean = false
+      override val laserOn: Boolean = false
 
       override fun devices(): Set<FoundBluetoothDevice> = setOf(
         FoundBluetoothDevice("Test 1", "AA:AA:AA:AA:AA:00", null),
