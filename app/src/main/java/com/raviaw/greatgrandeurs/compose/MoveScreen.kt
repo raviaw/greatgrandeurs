@@ -207,6 +207,7 @@ fun MoveScreenPreview() {
         override val connected: Boolean = false
         override val arduinoSlaveMode: Boolean = false
         override val arduinoLightsOn: Boolean = true
+        override val laserOn: Boolean = false
       },
       onBackClick = {}
     )

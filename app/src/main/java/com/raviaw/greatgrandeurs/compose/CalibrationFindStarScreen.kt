@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,8 +40,6 @@ import com.raviaw.greatgrandeurs.mapFloat
 import com.raviaw.greatgrandeurs.mapInt
 import com.raviaw.greatgrandeurs.standardPadding
 import com.raviaw.greatgrandeurs.state.ApplicationState
-import com.raviaw.greatgrandeurs.state.ArduinoState
-import com.raviaw.greatgrandeurs.state.CalibrationState
 import com.raviaw.greatgrandeurs.tracking.StarTargets
 import com.raviaw.greatgrandeurs.ui.theme.GreatGrandeursTheme
 import com.raviaw.greatgrandeurs.withinBoundaries
@@ -256,6 +253,7 @@ fun MoveControlsDialogPreview() {
         override val connected: Boolean = false
         override val arduinoSlaveMode: Boolean = false
         override val arduinoLightsOn: Boolean = true
+        override val laserOn: Boolean = false
       },
       onDismiss = {}
     )
